@@ -1,7 +1,7 @@
 registry: noop
 provider: pihole
 pihole:
-  server: http://pihole-web.pihole-system.svc.cluster.local
+  server: https://pihole-web.pihole-system.svc.cluster.local
   tlsSkipVerify: true
 policy: upsert-only
 serviceAccount:
@@ -19,3 +19,6 @@ extraEnvVars:
       secretKeyRef:
         name: pihole-password
         key: password
+serviceAccount:
+  create: true
+  name: "external-dns"
