@@ -133,16 +133,6 @@ cephFileSystems:
       reclaimPolicy: Delete
       allowVolumeExpansion: true
       volumeBindingMode: "Immediate"
-cephFileSystemVolumeSnapshotClass:
-  enabled: true
-  name: ceph-filesystem
-  isDefault: true
-  deletionPolicy: Delete
-cephBlockPoolsVolumeSnapshotClass:
-  enabled: true
-  name: ceph-block
-  isDefault: false
-  deletionPolicy: Delete
 cephObjectStores:
   - name: ceph-objectstore
     spec:

@@ -56,11 +56,19 @@ releases:
 
   # Ingress for local network
   - name: ingress-nginx-internal
-    namespace: nginx-system
+    namespace: internal-nginx-system
     chart: ingress-nginx/ingress-nginx
     version: 4.11.1
     values:
       - ./values/nginx-internal.values.yaml
+
+  # Ingress for local network
+  - name: ingress-nginx
+    namespace: nginx-system
+    chart: ingress-nginx/ingress-nginx
+    version: 4.11.1
+    values:
+      - ./values/nginx.values.yaml
 
   # Automatic DNS for pihole
   - name: externaldns-pihole

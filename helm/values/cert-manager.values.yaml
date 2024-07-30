@@ -3,3 +3,5 @@ crds:
 replicaCount: 2
 prometheus:
   enabled: true
+  servicemonitor:
+    enabled: true
