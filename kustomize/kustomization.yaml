@@ -4,4 +4,3 @@ commonLabels:
   app.kubernetes.io/managed-by: Kustomize
 resources:
   - ./metallb/pool.yaml
-  - ./ingresses/longhorn.yaml
