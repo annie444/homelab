@@ -73,32 +73,14 @@ cephClusterSpec:
 ingress:
   dashboard:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: dashboard.example.com
+      external-dns.alpha.kubernetes.io/hostname: ceph.home
       nginx.ingress.kubernetes.io/rewrite-target: /ceph-dashboard/$2
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      nginx.ingress.kubernetes.io/server-snippet: |
-        proxy_ssl_verify off;
     host:
       name: ceph.home
       path: "/ceph-dashboard(/|$)(.*)"
     ingressClassName: nginx-internal
-cephBlockPools:
-  - name: ceph-blockpool
-    spec:
-      failureDomain: host
-      replicated:
-        size: 2
-        enableRBDStats: true
-    storageClass:
-      enabled: true
-      name: ceph-block
-      isDefault: true
-      reclaimPolicy: Delete
-      allowVolumeExpansion: true
-      volumeBindingMode: "Immediate"
-      parameters:
-        imageFormat: "2"
-        imageFeatures: layering
+cephBlockPools: []
 cephFileSystems:
   - name: ceph-filesystem
     spec:
@@ -111,11 +93,6 @@ cephFileSystems:
           replicated:
             size: 2
           name: default
-        - name: erasurecoded
-          failureDomain: osd
-          erasureCoded:
-            dataChunks: 2
-            codingChunks: 1
       metadataServer:
         activeCount: 1
         activeStandby: true
@@ -127,42 +104,10 @@ cephFileSystems:
             memory: "4Gi"
     storageClass:
       enabled: true
-      isDefault: false
+      isDefault: true
       name: ceph-filesystem
-      pool: erasurecoded
+      pool: default
       reclaimPolicy: Delete
       allowVolumeExpansion: true
       volumeBindingMode: "Immediate"
-cephObjectStores:
-  - name: ceph-objectstore
-    spec:
-      metadataPool:
-        failureDomain: osd
-        replicated:
-          size: 1
-      dataPool:
-        failureDomain: osd
-        erasureCoded:
-          dataChunks: 2
-          codingChunks: 1
-      preservePoolsOnDelete: true
-      gateway:
-        port: 80
-        resources:
-          limits:
-            memory: "2Gi"
-          requests:
-            cpu: "1000m"
-            memory: "1Gi"
-        instances: 1
-    storageClass:
-      enabled: true
-      name: ceph-bucket
-      reclaimPolicy: Delete
-      volumeBindingMode: "Immediate"
-    ingress:
-      enabled: true
-      host:
-        name: objectstore.home
-        path: /
-      ingressClassName: nginx-internal
+cephObjectStores: []

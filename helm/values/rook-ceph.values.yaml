@@ -23,7 +23,7 @@ csi:
     - name: host-nix
       mountPath: /nix
       readOnly: true
-  enableCSIEncryption: true
+  enableCSIEncryption: false
   serviceMonitor:
     enabled: true
   addons:
