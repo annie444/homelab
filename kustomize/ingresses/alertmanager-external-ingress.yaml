@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    meta.helm.sh/release-name: prometheus-stack
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2024-07-30T02:53:48Z"
+  generation: 1
+  labels:
+    app: kube-prometheus-stack-alertmanager
+    app.kubernetes.io/instance: prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 61.6.0
+    chart: kube-prometheus-stack-61.6.0
+    heritage: Helm
+    release: prometheus-stack
+  name: prometheus-stack-kube-prom-alertmanager
+  namespace: monitoring
+  resourceVersion: "410818"
+  uid: 6e86e417-ca88-4867-9f39-a097dcfcd785
+spec:
+  ingressClassName: nginx-internal
+  rules:
+  - host: alertmanager.home
+    http:
+      paths:
+      - backend:
+          service:
+            name: prometheus-stack-kube-prom-alertmanager
+            port:
+              number: 9093
+        path: /
+        pathType: ImplementationSpecific
+status:
+  loadBalancer:
+    ingress:
+    - ip: 192.168.1.192
