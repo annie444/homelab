@@ -3,7 +3,6 @@ DNS1:
   192.168.1.1
 persistentVolumeClaim:
   enabled: true
-  storageClass: ceph-filesystem
 ingress:
   enabled: true
   hosts:
