@@ -1,0 +1,178 @@
+operatorNamespace: rook-ceph
+configOverride: |
+  [global]
+  mon_allow_pool_delete = true
+  osd_pool_default_size = 2
+  osd_pool_default_min_size = 1
+toolbox:
+  enabled: true
+monitoring:
+  enabled: true
+  createPrometheusRules: true
+cephClusterSpec:
+  dataDirHostPath: /var/lib/rook
+  skipUpgradeChecks: false
+  continueUpgradeAfterChecksEvenIfNotHealthy: false
+  waitTimeoutForHealthyOSDInMinutes: 10
+  upgradeOSDRequiresHealthyPGs: false
+  mon:
+    count: 2
+    allowMultiplePerNode: true
+  mgr:
+    count: 2
+    allowMultiplePerNode: true
+  dashboard:
+    enabled: true
+    ssl: true
+  network:
+    connections:
+      encryption:
+        enabled: true
+      compression:
+        enabled: true
+  crashCollector:
+    disable: false
+  logCollector:
+    enabled: true
+    periodicity: daily # one of: hourly, daily, weekly, monthly
+    maxLogSize: 500M
+  cleanupPolicy:
+    confirmation: ""
+    sanitizeDisks:
+      method: quick
+      dataSource: zero
+      iteration: 1
+    allowUninstallWithVolumes: false
+  removeOSDsIfOutAndSafeToRemove: true
+  storage:
+    useAllNodes: true
+    useAllDevices: true
+  disruptionManagement:
+    managePodBudgets: true
+    osdMaintenanceTimeout: 30
+    pgHealthCheckTimeout: 0
+  healthCheck:
+    daemonHealth:
+      mon:
+        disabled: false
+        interval: 45s
+      osd:
+        disabled: false
+        interval: 60s
+      status:
+        disabled: false
+        interval: 60s
+    # Change pod liveness probe, it works for all mon, mgr, and osd pods.
+    livenessProbe:
+      mon:
+        disabled: false
+      mgr:
+        disabled: false
+      osd:
+        disabled: false
+ingress:
+  dashboard:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: dashboard.example.com
+      nginx.ingress.kubernetes.io/rewrite-target: /ceph-dashboard/$2
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/server-snippet: |
+        proxy_ssl_verify off;
+    host:
+      name: ceph.home
+      path: "/ceph-dashboard(/|$)(.*)"
+    ingressClassName: nginx-internal
+cephBlockPools:
+  - name: ceph-blockpool
+    spec:
+      failureDomain: host
+      replicated:
+        size: 2
+        enableRBDStats: true
+    storageClass:
+      enabled: true
+      name: ceph-block
+      isDefault: true
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+      volumeBindingMode: "Immediate"
+      parameters:
+        imageFormat: "2"
+        imageFeatures: layering
+cephFileSystems:
+  - name: ceph-filesystem
+    spec:
+      metadataPool:
+        failureDomain: osd
+        replicated:
+          size: 1
+      dataPools:
+        - failureDomain: osd
+          replicated:
+            size: 2
+          name: default
+        - name: erasurecoded
+          failureDomain: osd
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+      metadataServer:
+        activeCount: 1
+        activeStandby: true
+        resources:
+          limits:
+            memory: "4Gi"
+          requests:
+            cpu: "1000m"
+            memory: "4Gi"
+    storageClass:
+      enabled: true
+      isDefault: false
+      name: ceph-filesystem
+      pool: erasurecoded
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+      volumeBindingMode: "Immediate"
+cephFileSystemVolumeSnapshotClass:
+  enabled: true
+  name: ceph-filesystem
+  isDefault: true
+  deletionPolicy: Delete
+cephBlockPoolsVolumeSnapshotClass:
+  enabled: true
+  name: ceph-block
+  isDefault: false
+  deletionPolicy: Delete
+cephObjectStores:
+  - name: ceph-objectstore
+    spec:
+      metadataPool:
+        failureDomain: osd
+        replicated:
+          size: 1
+      dataPool:
+        failureDomain: osd
+        erasureCoded:
+          dataChunks: 2
+          codingChunks: 1
+      preservePoolsOnDelete: true
+      gateway:
+        port: 80
+        resources:
+          limits:
+            memory: "2Gi"
+          requests:
+            cpu: "1000m"
+            memory: "1Gi"
+        instances: 1
+    storageClass:
+      enabled: true
+      name: ceph-bucket
+      reclaimPolicy: Delete
+      volumeBindingMode: "Immediate"
+    ingress:
+      enabled: true
+      host:
+        name: objectstore.home
+        path: /
+      ingressClassName: nginx-internal

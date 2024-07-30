@@ -33,6 +33,13 @@ releases:
     values:
       - ./values/rook-ceph.values.yaml
 
+  - name: rook-ceph-cluster
+    namespace: rook-ceph
+    chart: rook-release/rook-ceph-cluster
+    version: 1.14.9
+    values:
+      - ./values/rook-ceph-cluster.values.yaml
+
   # Load balancer
   - name: metallb
     chart: metallb/metallb
