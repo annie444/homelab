@@ -4,3 +4,6 @@ commonLabels:
   app.kubernetes.io/managed-by: Kustomize
 resources:
   - ./metallb/pool.yaml
+  - ./cert-manager/cluster-issuer.yaml
+  - ./rook-ceph/dashboard-external-https.yaml
+  - ./rook-ceph/dashboard-ingress-https.yaml
