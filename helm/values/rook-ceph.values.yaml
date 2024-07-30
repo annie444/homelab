@@ -28,6 +28,5 @@ csi:
     enabled: true
   addons:
     enabled: true
-enableDiscoveryDaemon: true
 monitoring:
   enabled: true

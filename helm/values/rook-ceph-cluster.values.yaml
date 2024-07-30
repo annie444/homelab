@@ -4,8 +4,6 @@ configOverride: |
   mon_allow_pool_delete = true
   osd_pool_default_size = 2
   osd_pool_default_min_size = 1
-toolbox:
-  enabled: true
 monitoring:
   enabled: true
   createPrometheusRules: true
@@ -23,18 +21,11 @@ cephClusterSpec:
     allowMultiplePerNode: true
   dashboard:
     enabled: true
-    ssl: true
-  network:
-    connections:
-      encryption:
-        enabled: true
-      compression:
-        enabled: true
   crashCollector:
     disable: false
   logCollector:
     enabled: true
-    periodicity: daily # one of: hourly, daily, weekly, monthly
+    periodicity: daily
     maxLogSize: 500M
   cleanupPolicy:
     confirmation: ""
@@ -62,7 +53,6 @@ cephClusterSpec:
       status:
         disabled: false
         interval: 60s
-    # Change pod liveness probe, it works for all mon, mgr, and osd pods.
     livenessProbe:
       mon:
         disabled: false
