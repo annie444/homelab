@@ -8,3 +8,4 @@ resources:
   - ./cert-manager/issuer.yaml
   - ./rook-ceph/dashboard-external-https.yaml
   - ./rook-ceph/dashboard-ingress-https.yaml
+  - ./ingresses/grafana-external-ingress.yaml
