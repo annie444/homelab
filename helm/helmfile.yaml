@@ -1,6 +1,6 @@
 repositories:
-  - name: longhorn
-    url: https://charts.longhorn.io
+  - name: rook-release
+    url: https://charts.rook.io/release
 
   - name: metallb
     url: https://metallb.github.io/metallb
@@ -17,13 +17,21 @@ repositories:
   - name: external-secrets
     url: https://charts.external-secrets.io
 
+  - name: jetstack
+    url: https://charts.jetstack.io
+
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
 ---
 releases:
   # Distributed storage
-  - name: longhorn
-    namespace: longhorn-system
-    chart: longhorn/longhorn
-    version: 1.6.2
+  - name: rook-ceph
+    namespace: rook-ceph
+    chart: rook-release/rook-ceph
+    version: 1.14.9
+    values:
+      - ./values/rook-ceph.values.yaml
 
   # Load balancer
   - name: metallb
@@ -60,3 +68,19 @@ releases:
     namespace: external-secrets
     chart: external-secrets/external-secrets
     version: 0.9.20
+
+  # Enable cluster wide certificates
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    version: 1.15.1
+    values:
+      - ./values/cert-manager.values.yaml
+
+  # Setup full monitoring stack
+  - name: prometheus-stack
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    version: 61.6.0
+    values:
+      - ./values/prometheus-stack.values.yaml

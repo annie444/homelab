@@ -1,0 +1,82 @@
+crds:
+  enabled: true
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    configReloaders: true
+    general: true
+    k8sContainerCpuUsageSecondsTotal: true
+    k8sContainerMemoryCache: true
+    k8sContainerMemoryRss: true
+    k8sContainerMemorySwap: true
+    k8sContainerResource: true
+    k8sContainerMemoryWorkingSetBytes: true
+    k8sPodOwner: true
+    kubeApiserverAvailability: true
+    kubeApiserverBurnrate: true
+    kubeApiserverHistogram: true
+    kubeApiserverSlos: true
+    kubeControllerManager: true
+    kubelet: true
+    kubeProxy: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    kubeSchedulerAlerting: true
+    kubeSchedulerRecording: true
+    kubeStateMetrics: true
+    network: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: true
+    windows: true
+alertmanager:
+  ingress:
+    enabled: true
+    hosts:
+      - alertmanager.home
+  service:
+    annotations:
+        metallb.universe.tf/allow-shared-ip: alertmanager-svc
+    type: LoadBalancer
+prometheusOperator:
+  admissionWebhooks:
+    deployment:
+      service:
+        annotations:
+          metallb.universe.tf/allow-shared-ip: prometheus-operator-admission-svc
+        type: LoadBalancer
+  service:
+    annotations:
+      metallb.universe.tf/allow-shared-ip: prometheus-operator-svc
+    type: LoadBalancer
+prometheus:
+  service:
+    type: LoadBalancer
+    annotations:
+      metallb.universe.tf/allow-shared-ip: prometheus-svc
+  ingress:
+    enabled: true
+    hosts:
+      - prometheus.home
+thanosRuler:
+  service:
+    type: LoadBalancer
+    annotations:
+      metallb.universe.tf/allow-shared-ip: thanos-svc
+  ingress:
+    enabled: true
+    hosts:
+      - thanos.home
+grafana:
+  ingress:
+    enabled: true
+    hosts:
+      - grafana.home

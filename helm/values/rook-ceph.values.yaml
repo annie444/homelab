@@ -1,0 +1,27 @@
+crds:
+  enabled: true # NOTE: DO NOT CHANGE
+csi:
+  csiCephFSPluginVolume: 
+    - name: lib-modules
+      hostPath:
+        path: /run/current-system/kernel-modules/lib/modules/
+    - name: host-nix
+      hostPath:
+        path: /nix
+  csiCephFSPluginVolumeMount:
+    - name: host-nix
+      mountPath: /nix
+      readOnly: true
+  csiRBDPluginVolume:
+    - name: lib-modules
+      hostPath:
+        path: /run/booted-system/kernel-modules/lib/modules/
+    - name: host-nix
+      hostPath:
+        path: /nix
+  csiRBDPluginVolumeMount: 
+    - name: host-nix
+      mountPath: /nix
+      readOnly: true
+  addons:
+    enabled: true
