@@ -23,6 +23,9 @@ repositories:
   - name: prometheus-community
     url: https://prometheus-community.github.io/helm-charts
 
+  - name: ess-starter-edition-core
+    url: https://element-hq.github.io/ess-starter-edition-core
+
 ---
 releases:
   # Distributed storage
@@ -99,3 +102,25 @@ releases:
     version: 61.6.0
     values:
       - ./values/prometheus-stack.values.yaml
+
+    # Postgresql
+  - name: postgresql
+    namespace: postgresql
+    chart: bitnami/postgresql
+    version: 15.5.20
+    values:
+      - ./values/postgresql.values.yaml
+
+  # Element updater
+  - name: element-updater
+    namespace: element-updater
+    chart: ess-starter-edition-core/element-updater
+    values:
+      - ./values/element-updater.values.yaml
+
+  # Element operator
+  - name: element-operator
+    namespace: element-operator
+    chart: ess-starter-edition-core/element-operator
+    values:
+      - ./values/element-operator.values.yaml

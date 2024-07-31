@@ -96,12 +96,12 @@ cephFileSystems:
       metadataPool:
         failureDomain: osd
         replicated:
-          size: 1
+          size: 2
           requireSafeReplicaSize: false
       dataPools:
         - failureDomain: osd
           replicated:
-            size: 1
+            size: 2
             requireSafeReplicaSize: false
           name: data0
       preserveFilesystemOnDelete: false
