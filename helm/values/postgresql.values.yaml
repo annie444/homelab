@@ -1,5 +1,4 @@
 auth:
-  # This is the necessary configuration you will need for the Installer, minus the hostname
   database: "synapse"
   username: "synapse"
   existingSecret: "postgresql-secret"
@@ -8,9 +7,14 @@ auth:
     userPasswordKey: "password"
     replicationPasswordKey: "replication-password"
   usePasswordFiles: false
+  scriptsConfigMap: postgres-init-scripts
 primary:
   initdb:
     args: "--lc-collate=C --lc-ctype=C"
   persistence:
     enabled: true
     size: 20Gi
+metrics:
+  enabled: true
+  prometheusRule:
+    enabled: true

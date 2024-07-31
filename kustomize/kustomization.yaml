@@ -9,3 +9,4 @@ resources:
   - ./rook-ceph/dashboard-external-https.yaml
   - ./rook-ceph/dashboard-ingress-https.yaml
   - ./ingresses/grafana-external-ingress.yaml
+  - ./matrix/postgres-init-configMap.yaml
