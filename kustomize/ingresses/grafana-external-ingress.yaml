@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: prometheus-stack-grafana-external
+  name: grafana-external
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     kubernetes.io/tls-acme: "true"
@@ -18,7 +18,7 @@ spec:
         paths:
           - backend:
               service:
-                name: prometheus-stack-grafana
+                name: grafana
                 port:
                   number: 80
             path: /

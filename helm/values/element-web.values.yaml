@@ -31,17 +31,17 @@ nginxConfig: |-
 ## Configuration for mounting additional volumes into the application container.
 ##
 extraVolumes: {}
-# - name: backgrounds
-#   persistentVolumeClaim:
-#     claimName: element-backgrounds
+  #  - name: element
+  #    persistentVolumeClaim:
+  #      claimName: element
 extraVolumeMounts: {}
-# - name: backgrounds
-#   mountPath: /app/themes/element/img/backgrounds/
+  #  - name: element
+  #    mountPath: /app/themes/element/img/backgrounds/
 
 ## Configures an application-specific service account.
 ##
 serviceAccount:
-  create: true
+  create: false
 
   # Annotations to add to the service account
   annotations: {}
@@ -55,18 +55,18 @@ podAnnotations: {}
 
 ## Security context configuration to add to the pod.
 ##
-podSecurityContext:
-  fsGroup: 2000
+podSecurityContext: {}
+  #  fsGroup: 2000
 
 ## Security context configuration to add to the container inside the pod.
 ##
-securityContext:
-  capabilities:
-    drop:
-    - ALL
-  readOnlyRootFilesystem: true
-  runAsNonRoot: true
-  runAsUser: 1000
+securityContext: {}
+  #  capabilities:
+  #    drop:
+  #    - ALL
+  #  readOnlyRootFilesystem: false
+  #  runAsNonRoot: true
+  #  runAsUser: 1000
 
 ## Service configuration.
 ##

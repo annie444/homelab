@@ -23,6 +23,9 @@ repositories:
   - name: ananace-charts
     url: https://ananace.gitlab.io/charts
 
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+
 ---
 releases:
   # Distributed storage
@@ -94,6 +97,20 @@ releases:
     values:
       - ./values/prometheus-stack.values.yaml
 
+  - name: alloy
+    namespace: monitoring
+    chart: grafana/alloy
+    version: 0.5.1
+    values:
+      - ./values/alloy.values.yaml
+
+  - name: loki
+    namespace: monitoring
+    chart: grafana/loki
+    version: 6.7.3
+    values:
+      - ./values/loki.values.yaml
+
     # Postgresql
   - name: postgresql
     namespace: postgresql
@@ -101,6 +118,13 @@ releases:
     version: 15.5.20
     values:
       - ./values/postgresql.values.yaml
+
+  - name: postgres-exporter
+    namespace: postgresql
+    chart: prometheus-community/prometheus-postgres-exporter
+    version: 6.1.0
+    values:
+      - ./values/postgres-exporter.values.yaml
 
   # Element Web client
   - name: element-web
@@ -125,3 +149,4 @@ releases:
     version: 3.9.9
     values:
       - ./values/matrix-synapse.values.yaml
+
