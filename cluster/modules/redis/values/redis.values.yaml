@@ -1,0 +1,592 @@
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  defaultStorageClass: ""
+  storageClass: ""
+  redis:
+    password: ""
+  compatibility:
+    openshift:
+      adaptSecurityContext: disabled
+
+kubeVersion: ""
+nameOverride: "redis"
+fullnameOverride: "redis"
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+secretAnnotations: {}
+clusterDomain: cluster.local
+extraDeploy: []
+useHostnames: true
+nameResolutionThreshold: 5
+nameResolutionTimeout: 5
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+image:
+  registry: docker.io
+  repository: bitnami/redis
+  tag: 7.2.5-debian-12-r4
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+  debug: false
+
+architecture: replication
+auth:
+  enabled: true
+  sentinel: true
+  usePasswordFiles: false
+  usePasswordFileFromSecret: true
+
+commonConfiguration: |-
+  # Enable AOF https://redis.io/topics/persistence#append-only-file
+  appendonly yes
+  # Disable RDB persistence, AOF persistence already enabled.
+  save ""
+
+existingConfigmap: ""
+
+master:
+  count: 1
+  revisionHistoryLimit: 3
+  configuration: ""
+  disableCommands:
+    - FLUSHDB
+    - FLUSHALL
+  command: []
+  args: []
+  enableServiceLinks: true
+  preExecCmds: []
+  extraFlags: []
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  containerPorts:
+    redis: 6379
+
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 20
+    periodSeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 20
+    periodSeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 20
+    periodSeconds: 5
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 5
+  
+  customStartupProbe: {}
+  
+  customLivenessProbe: {}
+  
+  customReadinessProbe: {}
+  
+  resourcesPreset: "nano"
+  
+  resources: {}
+  
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+ 
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop: ["ALL"]
+  
+  kind: StatefulSet
+  schedulerName: ""
+  updateStrategy:
+    type: RollingUpdate
+  
+  minReadySeconds: 0
+  priorityClassName: ""
+  automountServiceAccountToken: false
+  hostAliases: []
+  podLabels: {}
+  podAnnotations: {}
+  shareProcessNamespace: false
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  dnsPolicy: "ClusterFirst"
+  dnsConfig: {}
+  lifecycleHooks: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  sidecars: []
+  initContainers: []
+  persistence:
+    enabled: true
+    medium: ""
+    sizeLimit: ""
+    path: /data
+    subPath: ""
+    subPathExpr: ""
+    storageClass: ""
+    accessModes:
+      - ReadWriteMany
+    size: 8Gi
+    annotations: {}
+    labels: {}
+    selector: {}
+    dataSource: {}
+    existingClaim: ""
+  persistentVolumeClaimRetentionPolicy:
+    enabled: false
+    whenScaled: Retain
+    whenDeleted: Retain
+
+  service:
+    type: LoadBalancer
+    portNames:
+      redis: "tcp-redis"
+    ports:
+      redis: 6379
+    nodePorts:
+      redis: ""
+    externalTrafficPolicy: Cluster
+    extraPorts: []
+    internalTrafficPolicy: Cluster
+    clusterIP: ""
+    loadBalancerIP: ""
+    loadBalancerClass: ""
+    loadBalancerSourceRanges: []
+    externalIPs: []
+    sessionAffinity: None
+    sessionAffinityConfig: {}
+
+  terminationGracePeriodSeconds: 30
+  serviceAccount:
+    create: true
+    name: "redis-master"
+    automountServiceAccountToken: false
+    annotations: {}
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+replica:
+  kind: StatefulSet
+  replicaCount: 3
+  revisionHistoryLimit: 10
+  configuration: ""
+  disableCommands:
+    - FLUSHDB
+    - FLUSHALL
+  command: []
+  args: []
+  enableServiceLinks: true
+  preExecCmds: []
+  extraFlags: []
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  externalMaster:
+    enabled: false
+    host: ""
+    port: 6379
+  containerPorts:
+    redis: 6378
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 22
+  
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 20
+    periodSeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 20
+    periodSeconds: 5
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 5
+  
+  customStartupProbe: {}
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  
+  resourcesPreset: "nano"
+  resources: {}
+  
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop: ["ALL"]
+  
+  schedulerName: ""
+  updateStrategy:
+    type: RollingUpdate
+
+  minReadySeconds: 0
+  priorityClassName: ""
+  podManagementPolicy: ""
+  automountServiceAccountToken: false
+  hostAliases: []
+  podLabels: {}
+  podAnnotations: {}
+  shareProcessNamespace: false
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  topologySpreadConstraints: []
+
+  dnsPolicy: "ClusterFirst"
+  dnsConfig: {}
+  lifecycleHooks: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  sidecars: []
+  initContainers: []
+  persistence:
+    enabled: true
+    medium: ""
+    sizeLimit: ""
+    path: /data
+    subPath: ""
+    subPathExpr: ""
+    accessModes:
+      - ReadWriteMany
+    size: 8Gi
+    annotations: {}
+    labels: {}
+    selector: {}
+    dataSource: {}
+    existingClaim: ""
+  persistentVolumeClaimRetentionPolicy:
+    enabled: false
+    whenScaled: Retain
+    whenDeleted: Retain
+  
+  service:
+    type: LoadBalancer
+    ports:
+      redis: 6378
+    nodePorts:
+      redis: ""
+    externalTrafficPolicy: Cluster
+    internalTrafficPolicy: Cluster
+    extraPorts: []
+    clusterIP: ""
+    loadBalancerIP: ""
+    loadBalancerClass: ""
+    loadBalancerSourceRanges: []
+    annotations: {}
+    sessionAffinity: None
+    sessionAffinityConfig: {}
+ 
+  terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+
+  serviceAccount:
+    create: true
+    name: "redis-replica"
+    automountServiceAccountToken: false
+    annotations: {}
+  
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+sentinel:
+  enabled: false
+
+serviceBindings:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+  extraIngress: []
+  extraEgress: []
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+
+  metrics:
+    allowExternal: true
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+
+podSecurityPolicy:
+  create: true
+  enabled: true
+
+rbac:
+  create: true
+  rules: []
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+  annotations: {}
+pdb: {}
+tls:
+  enabled: false
+  authClients: true
+  autoGenerated: false
+  existingSecret: ""
+  certificatesSecret: ""
+  certFilename: ""
+  certKeyFilename: ""
+  certCAFilename: ""
+  dhParamsFilename: ""
+
+metrics:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/redis-exporter
+    tag: 1.62.0-debian-12-r2
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  containerPorts:
+    http: 9121
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+  customStartupProbe: {}
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  command: []
+  redisTargetHost: "localhost"
+  extraArgs: {}
+  extraEnvVars: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop: ["ALL"]
+  extraVolumes: []
+  extraVolumeMounts: []
+  resourcesPreset: "micro"
+  resources: {}
+  podLabels: {}
+
+  service:
+    enabled: true
+    type: ClusterIP
+    ports:
+      http: 9121
+    externalTrafficPolicy: Cluster
+    extraPorts: []
+    loadBalancerIP: ""
+    loadBalancerClass: ""
+    loadBalancerSourceRanges: []
+    annotations: {}
+    clusterIP: ""
+  
+  serviceMonitor:
+    port: http-metrics
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: ""
+    sampleLimit: false
+    targetLimit: false
+    additionalEndpoints:
+      - interval: "30s"
+        path: "/scrape"
+        port: "metrics"
+        params:
+          target: ["localhost:26379"]
+        metricRelabelings:
+          - targetLabel: "app"
+            replacement: "sentinel"
+ 
+  prometheusRule:
+    additionalLabels: {}
+    rules:
+      - alert: RedisDown
+        expr: redis_up{service="{{ template "common.names.fullname" . }}-metrics"} == 0
+        for: 2m
+        labels:
+          severity: error
+        annotations:
+          summary: Redis&reg; instance {{ "{{ $labels.instance }}" }} down
+          description: Redis&reg; instance {{ "{{ $labels.instance }}" }} is down
+      - alert: RedisMemoryHigh
+        expr: >
+          redis_memory_used_bytes{service="{{ template "common.names.fullname" . }}-metrics"} * 100
+          /
+          redis_memory_max_bytes{service="{{ template "common.names.fullname" . }}-metrics"}
+          > 90
+        for: 2m
+        labels:
+          severity: error
+        annotations:
+          summary: Redis&reg; instance {{ "{{ $labels.instance }}" }} is using too much memory
+          description: |
+            Redis&reg; instance {{ "{{ $labels.instance }}" }} is using {{ "{{ $value }}" }}% of its available memory.
+      - alert: RedisKeyEviction
+        expr: |
+          increase(redis_evicted_keys_total{service="{{ template "common.names.fullname" . }}-metrics"}[5m]) > 0
+        for: 1s
+        labels:
+          severity: error
+        annotations:
+          summary: Redis&reg; instance {{ "{{ $labels.instance }}" }} has evicted keys
+          description: |
+            Redis&reg; instance {{ "{{ $labels.instance }}" }} has evicted {{ "{{ $value }}" }} keys in the last 5 minutes. 
+
+# Init Containers
+
+volumePermissions:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/os-shell
+    tag: 12-debian-12-r27
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  ## allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge
+  resourcesPreset: "micro"
+  resources: {}
+  containerSecurityContext:
+    seLinuxOptions: {}
+    runAsUser: 0
+
+kubectl:
+  image:
+    registry: docker.io
+    repository: bitnami/kubectl
+    tag: 1.30.3-debian-12-r4
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  command: ["/opt/bitnami/scripts/kubectl-scripts/update-master-label.sh"]
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop: ["ALL"]
+  resources:
+    limits: {}
+    requests: {}
+
+sysctl:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/os-shell
+    tag: 12-debian-12-r27
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  command: []
+  mountHostSys: true
+  resourcesPreset: "micro"
+  resources: {}
+
+useExternalDNS:
+  enabled: false
+  suffix: ""
+  annotationKey: external-dns.alpha.kubernetes.io/
+  additionalAnnotations: {}
+

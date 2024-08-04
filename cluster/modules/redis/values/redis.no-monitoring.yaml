@@ -1,0 +1,6 @@
+metrics:
+  serviceMonitor:
+    enabled: false
+  enabled: false
+  prometheusRule:
+    enabled: false

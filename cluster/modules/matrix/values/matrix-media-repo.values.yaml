@@ -1,0 +1,162 @@
+---
+## Number of replicas for the media repo
+##
+replicaCount: 1
+
+## Image configuration for the media repo
+##
+image:
+  repository: turt2live/matrix-media-repo
+  pullPolicy: IfNotPresent
+  # tag: ""
+
+imagePullSecrets: []
+# nameOverride: ""
+# fullnameOverride: ""
+
+## Global configuration.
+## Ref: https://github.com/turt2live/matrix-media-repo/blob/master/config.sample.yaml
+##
+config:
+  datastores:
+    - type: file
+      id: "4Ye87j9Mpfdisc"
+      forKinds: ["all"]
+      opts:
+        path: /media
+  admins:
+    - "@annie444:jpeg.gay"
+
+  federation:
+    backoffAt: 20
+    ignoredHosts:
+      - example.org
+
+  featureSupport:
+    MSC2448:
+      enabled: true
+
+extraRepo:
+  jsonLogs: true
+  logLevel: "info"
+  trustAnyForwardedAddress: false
+  useForwardedHost: true
+  freezeUnauthenticatedMedia: true
+
+extraVolumes: []
+
+homeservers:
+  jpeg.gay:
+    csApi: 'https://matrix.jpeg.gay'
+    backoffAt: 20
+    adminApiKind: 'synapse'
+    identicons:
+      enabled: false
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteMany
+  size: 50Gi
+
+postgresql:
+  enabled: false
+
+externalPostgresql:
+  port: 5432
+  username: matrix_media_repo
+  database: matrix_media_repo
+  sslMode: disable
+
+redis:
+  enabled: false
+
+externalRedis:
+  host: redis
+  port: 6379
+  database: 1
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+## Security context configuration to add to the container inside the pod.
+##
+# securityContext:
+#   capabilities:
+#     drop:
+#     - ALL
+#   readOnlyRootFilesystem: false
+#   runAsNonRoot: true
+#   allowPrivilegeEscalation: false
+#   runAsUser: 1000
+#   fsGroupChangePolicy: "OnRootMismatch"
+
+service:
+  type: LoadBalancer
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: matrix-media.jpeg.gay
+      paths:
+        - "/_matrix/media"
+  tls:
+    - secretName: matrix-media.jpeg.gay
+      hosts:
+        - matrix-media.jpeg.gay
+
+resources: {}
+  # limits:
+  #   cpu: 250m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 512Mi
+
+## Configure auto-scaling for the application.
+## NB; Make sure to read all relevant documentation before playing with this.
+##
+# autoscaling:
+#   enabled: false
+#   minReplicas: 1
+#   maxReplicas: 4
+#   targetCPUUtilizationPercentage: 80
+#   targetMemoryUtilizationPercentage: 80
+
+## Configure a PodMonitor definition for the application.
+## Requires the Prometheus Operator
+##
+  ## Set the crawl interval (optional)
+  ## Otherwise uses the default setting set in prometheus
+  # interval: 30s
+
+## Node selectors to use when deploying the application.
+##
+nodeSelector: {}
+
+## Tolerations to apply to the application.
+##
+tolerations: []
+
+## Affinities to set on the application.
+##
+affinity: {}
+
+## Deployment annotations
+##
+annotations: {}
+
+## Deployment labels
+##
+labels: {}
+

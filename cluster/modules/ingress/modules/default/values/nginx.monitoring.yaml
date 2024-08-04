@@ -1,0 +1,12 @@
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+  prometheusRule:
+    enabled: true
+controller:
+  metrics:
+    servicemonitor:
+      enabled: true
+    prometheusRule:
+      enabled: true

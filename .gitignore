@@ -1,3 +1,16 @@
 .env*
+.sops*
 /secrets
 helm/values/*matrix*.values.yaml
+cluster/*.tfstate
+cluster/*.tfstate.*
+cluster/*.tfvars
+cluster/*.tfvars.json
+**/.terraform/*
+cluster/crash.log
+cluster/crash.*.log
+cluster/*.tfplan
+cluster/override.tf
+cluster/override.tf.json
+cluster/*_override.tf
+cluster/*_override.tf.json

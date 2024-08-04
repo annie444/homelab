@@ -1,0 +1,35 @@
+service:
+  annotations:
+    metallb.universe.tf/allow-shared-ip: nginx-svc
+    metallb.universe.tf/loadBalancerIPs: 192.168.1.240
+  loadBalancerIP: 192.168.1.240
+extraArgs:
+  tcp-services-configmap: ingress-nginx/tcp-services
+  udp-services-configmap: ingress-nginx/udp-services
+controller:
+  tcp:
+    configMapNamespace: ingress-nginx
+    annotations:
+      app: ingress-nginx
+      component: tcp-services-configmap
+  udp:
+    configMapNamespace: ingress-nginx
+    annotations:
+      app: ingress-nginx
+      component: udp-services-configmap
+  service:
+    enabled: true
+    external:
+      enabled: true
+    type: LoadBalancer
+    enableHttp: true
+    enableHttps: true
+    ports:
+      http: 80
+      https: 443
+    targetPorts:
+      http: http
+      https: https
+    appProtocol: true
+defaultBackend:
+  enabled: true

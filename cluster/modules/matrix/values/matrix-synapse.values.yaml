@@ -1,0 +1,919 @@
+---
+image:
+  repository: matrixdotorg/synapse
+  pullPolicy: IfNotPresent
+
+serverName: 'jpeg.gay'
+publicServerName: 'matrix.jpeg.gay'
+signingkey:
+  job:
+    enabled: true
+
+    annotations: {}
+    #  argocd.argoproj.io/hook: PostSync
+    #  argocd.argoproj.io/hook-delete-policy: HookSucceeded
+
+    generateImage:
+      repository: matrixdotorg/synapse
+      tag: latest
+      pullPolicy: IfNotPresent
+
+    publishImage:
+      repository: bitnami/kubectl
+      tag: latest
+      pullPolicy: IfNotPresent
+
+    ## Configure for pod job security policy, setting ovnership of the pod such that
+    ## synapse owns the files created by signing key job.
+    ## Synapse default UID:GID is 666:666
+    ##
+    ## Some systems will have a default owner such as root to own the files, synpase
+    ## will not be able to access the files in such a case, deppending on permissions.
+    podSecurityContext:
+      fsGroup: 666
+      runAsGroup: 666
+      runAsUser: 666
+      readOnlyRootFilesystem: false
+      fsGroupChangePolicy: "Always"
+      allowPrivilegeEscalation: false
+
+    ## Configuration for the container security policy, refer to the above
+    ## podSecurityContext for more relevant information.
+    ##
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: false
+      fsGroupChangePolicy: "Always"
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      runAsUser: 666
+
+  #existingSecret: matrix-synapse-signingkey
+  #existingSecretKey: signing.key
+
+  resources: {}
+  #  limits:
+  #    cpu: 100m
+  #    memory: 250Mi
+  #  requests:
+  #    cpu: 100m
+  #    memory: 250Mi
+
+config:
+  publicBaseurl: 'https://matrix.jpeg.gay'
+  logLevel: INFO
+  reportStats: false
+  turnUris: [
+    turns:turn.jepg.gay:5349
+    turn:turn.jepg.gay:3478
+    turns:turn.jepg.gay:443
+  ]
+  # turnSecret: ''
+  enableRegistration: true
+  trustedKeyServers:
+    - server_name: matrix.org
+  #   verify_keys:
+  #     "ed25519:auto": "Noi6WqcDj0QmPxCNQqgezwTlBKrfqehY1u2FyWP9uYw"
+  bindAddresses:
+    - '::'
+    - 0.0.0.0
+  extraListeners: []
+  extraMainListenerTypes: []
+  useStructuredLogging: true
+
+extraConfig:
+  use_presence: true
+  enable_search: true
+  dynamic_thumbnails: true
+  enable_media_repo: true
+  enable_registration_captcha: true  
+  run_background_tasks_on: generic_background
+  stream_writers:
+    events:
+      - event_streamer1
+      - event_streamer2
+    typing: 
+      - typing_streamer1
+      - typing_streamer2
+    to_device: 
+      - device_streamer1
+      - device_streamer2
+    account_data: 
+      - account_streamer1
+      - account_streamer2
+    receipts: 
+      - receipts_streamer1
+      - receipts_streamer2
+    presence: 
+      - presence_streamer1
+      - presence_streamer2
+    push_rules: 
+      - push_streamer1
+      - push_streamer2
+  federation_sender_instances:
+    - federation_sender1
+    - federation_sender2
+  outbound_federation_restricted_to:
+    - federation_sender1
+  update_user_directory_from_worker: userdir1
+  notify_appservices_from_worker: appservices1
+  media_instance_running_background_jobs: media_repository1
+  pusher_instances:
+    - pusher1
+    - pusher2
+
+extraLoggers: {}
+
+extraSecrets: {}
+
+synapse:
+  strategy:
+    type: RollingUpdate
+
+  annotations: {}
+
+  labels:
+    app.kubernetes.io/component: "synapse"
+
+  extraEnv:
+    - name: LD_PRELOAD
+      value: /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+    - name: SYNAPSE_CACHE_FACTOR
+      value: "2"
+
+  extraVolumes: []
+  #  - name: spamcheck
+  #    flexVolume:
+  #      driver: ananace/git-live
+  #      options:
+  #        repo: https://github.com/company/synapse-module
+  #        interval: 1d
+  #      readOnly: true
+  extraVolumeMounts: []
+  #  - name: spamcheck
+  #    mountPath: /usr/local/lib/python3.7/site-packages/company
+
+  extraCommands: []
+    # - 'apt-get update -yqq && apt-get install patch -yqq'
+    # - 'patch -d/usr/local/lib/python3.7/site-packages/synapse -p2 < /synapse/patches/something.patch'
+
+  podSecurityContext:
+    fsGroup: 666
+    runAsGroup: 666
+    runAsUser: 666
+    readOnlyRootFilesystem: false
+    fsGroupChangePolicy: "Always"
+    allowPrivilegeEscalation: false
+
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+    runAsNonRoot: true
+    runAsUser: 666
+    readOnlyRootFilesystem: false
+    fsGroupChangePolicy: "Always"
+    allowPrivilegeEscalation: false
+
+  resources: {}
+  #  limits:
+  #    cpu: 1000m
+  #    memory: 2500Mi
+  #  requests:
+  #    cpu: 1000m
+  #    memory: 2500Mi
+
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+
+  startupProbe:
+    failureThreshold: 12
+    httpGet:
+      path: /health
+      port: http
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+workers:
+  default:
+    replicaCount: 1
+    strategy:
+      type: RollingUpdate
+    extraConfig: {}
+      
+
+    annotations: {}
+    ExtraEnv:
+      - name: LD_PRELOAD
+        value: /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+      - name: SYNAPSE_CACHE_FACTOR
+        value: "1.0"
+
+    volumes: []
+    volumeMounts: []
+    extraCommands: []
+      # - 'apt-get update -yqq && apt-get install patch -yqq'
+      # - 'patch -d/usr/local/lib/python3.7/site-packages/synapse -p2 < /synapse/patches/something.patch'
+
+    podSecurityContext:
+      fsGroup: 666
+      runAsGroup: 666
+      runAsUser: 666
+      readOnlyRootFilesystem: false
+      fsGroupChangePolicy: "Always"
+      allowPrivilegeEscalation: false
+
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      fsGroupChangePolicy: "Always"
+      runAsUser: 666
+      allowPrivilegeEscalation: false
+
+    resources: {}
+    #   limits:
+    #     cpu: 100m
+    #     memory: 128Mi
+    #   requests:
+    #     cpu: 100m
+    #     memory: 128Mi
+
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: metrics
+
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: metrics
+
+    startupProbe:
+      failureThreshold: 6
+      httpGet:
+        path: /health
+        port: metrics
+
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  generic_background:
+    enabled: true
+    generic: true
+    app: generic_worker
+    name: generic_background
+    #listeners: [client, federation, resources]
+    #csPaths:
+    #  ## Sync requests
+    #  - "/_matrix/client/(r0|v3)/sync$"
+    #  - "/_matrix/client/(api/v1|r0|v3)/events$"
+    #  - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+    #  - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+
+    #  ## Client API requests
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$"
+    #  - "/_matrix/client/v1/rooms/.*/hierarchy$"
+    #  - "/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$"
+    #  - "/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$"
+    #  - "/_matrix/client/(r0|v3|unstable)/account/3pid$"
+    #  - "/_matrix/client/(r0|v3|unstable)/account/whoami$"
+    #  - "/_matrix/client/(r0|v3|unstable)/devices$"
+    #  - "/_matrix/client/versions$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
+
+    #  ## Encryption requests
+    #  - "/_matrix/client/(r0|v3|unstable)/keys/query$"
+    #  - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
+    #  - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
+    #  - "/_matrix/client/(r0|v3|unstable)/room_keys/"
+
+    #  ## Registration/login requests
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
+    #  - "/_matrix/client/(r0|v3|unstable)/register$"
+    #  - "/_matrix/client/v1/register/m.login.registration_token/validity$"
+
+    #  ## Event sending requests
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+    #  ## User directory search requests
+    #  - "/_matrix/client/(r0|v3|unstable)/user_directory/search"
+
+    #  ## Worker event streams
+    #  ## See https://matrix-org.github.io/synapse/latest/workers.html#stream-writers
+    #  ##
+
+    #  ## The typing event stream
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
+
+    #  ## The to_device event stream
+    #  - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
+
+    #  ## The account_data event stream
+    #  - "/_matrix/client/(r0|v3|unstable)/.*/tags"
+    #  - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
+
+    #  ## The receipts event stream
+    #  - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
+    #  - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
+
+    #  ## The presence event stream
+    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
+
+    #paths:
+    #  ## Federation requests
+    #  - "/_matrix/federation/v1/event/"
+    #  - "/_matrix/federation/v1/state/"
+    #  - "/_matrix/federation/v1/state_ids/"
+    #  - "/_matrix/federation/v1/backfill/"
+    #  - "/_matrix/federation/v1/get_missing_events/"
+    #  - "/_matrix/federation/v1/publicRooms"
+    #  - "/_matrix/federation/v1/query/"
+    #  - "/_matrix/federation/v1/make_join/"
+    #  - "/_matrix/federation/v1/make_leave/"
+    #  - "/_matrix/federation/(v1|v2)/send_join/"
+    #  - "/_matrix/federation/(v1|v2)/send_leave/"
+    #  - "/_matrix/federation/(v1|v2)/invite/"
+    #  - "/_matrix/federation/v1/event_auth/"
+    #  - "/_matrix/federation/v1/exchange_third_party_invite/"
+    #  - "/_matrix/federation/v1/user/devices/"
+    #  - "/_matrix/key/v2/query"
+    #  - "/_matrix/federation/v1/hierarchy/"
+
+    #  ## Inbound federation transaction request
+    #  - "/_matrix/federation/v1/send/"
+
+  ## https://github.com/matrix-org/synapse/blob/develop/docs/workers.md#load-balancing
+  event_streamer1:
+    name: event_streamer1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/knock/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+  event_streamer2:
+    name: event_streamer2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/knock/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+  typing_streamer1:
+    name: typing_streamer1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
+
+  typing_streamer2:
+    name: typing_streamer2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
+
+  device_streamer1:
+    name: device_streamer1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
+
+  device_streamer2:
+    name: device_streamer2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
+
+  account_streamer1:
+    name: account_streamer1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(r0|v3|unstable)/.*/tags"
+      - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
+
+  account_streamer2:
+    name: account_streamer2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(r0|v3|unstable)/.*/tags"
+      - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
+
+  receipts_streamer1:
+    name: receipts_streamer1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
+      - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
+
+  receipts_streamer2:
+    name: receipts_streamer2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
+      - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
+
+  presence_streamer1:
+    name: presence_streamer1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
+
+  presence_streamer2:
+    name: presence_streamer2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
+
+  push_streamer1:
+    name: push_streamer1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/"
+
+  push_streamer2:
+    name: push_streamer2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources, replication]
+    csPaths:
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/"
+
+  federation_sender1:
+    name: federation_sender1
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources]
+    csPaths:
+      - "/_matrix/federation/v1/event/"
+      - "/_matrix/federation/v1/state/"
+      - "/_matrix/federation/v1/state_ids/"
+      - "/_matrix/federation/v1/backfill/"
+      - "/_matrix/federation/v1/get_missing_events/"
+      - "/_matrix/federation/v1/publicRooms"
+      - "/_matrix/federation/v1/query/"
+      - "/_matrix/federation/v1/make_join/"
+      - "/_matrix/federation/v1/make_leave/"
+      - "/_matrix/federation/(v1|v2)/send_join/"
+      - "/_matrix/federation/(v1|v2)/send_leave/"
+      - "/_matrix/federation/v1/make_knock/"
+      - "/_matrix/federation/v1/send_knock/"
+      - "/_matrix/federation/(v1|v2)/invite/"
+      - "/_matrix/federation/v1/event_auth/"
+      - "/_matrix/federation/v1/timestamp_to_event/"
+      - "/_matrix/federation/v1/exchange_third_party_invite/"
+      - "/_matrix/federation/v1/user/devices/"
+      - "/_matrix/key/v2/query"
+      - "/_matrix/federation/v1/hierarchy/"
+      - "/_matrix/federation/v1/send/"
+
+  federation_sender2:
+    name: federation_sender2
+    enabled: true
+    generic: true
+    app: generic_worker
+    listeners: [federation, client, resources]
+    csPaths:
+      - "/_matrix/federation/v1/event/"
+      - "/_matrix/federation/v1/state/"
+      - "/_matrix/federation/v1/state_ids/"
+      - "/_matrix/federation/v1/backfill/"
+      - "/_matrix/federation/v1/get_missing_events/"
+      - "/_matrix/federation/v1/publicRooms"
+      - "/_matrix/federation/v1/query/"
+      - "/_matrix/federation/v1/make_join/"
+      - "/_matrix/federation/v1/make_leave/"
+      - "/_matrix/federation/(v1|v2)/send_join/"
+      - "/_matrix/federation/(v1|v2)/send_leave/"
+      - "/_matrix/federation/v1/make_knock/"
+      - "/_matrix/federation/v1/send_knock/"
+      - "/_matrix/federation/(v1|v2)/invite/"
+      - "/_matrix/federation/v1/event_auth/"
+      - "/_matrix/federation/v1/timestamp_to_event/"
+      - "/_matrix/federation/v1/exchange_third_party_invite/"
+      - "/_matrix/federation/v1/user/devices/"
+      - "/_matrix/key/v2/query"
+      - "/_matrix/federation/v1/hierarchy/"
+      - "/_matrix/federation/v1/send/"
+
+  userdir1:
+    enabled: true
+    generic: true
+    app: generic_worker
+    name: userdir1
+    listers: [client, federation, resources]
+    csPaths:
+      - "^/_matrix/client/(r0|v3|unstable)/user_directory/search$"
+
+  appservices1:
+    app: generic_worker
+    enabled: true
+    generic: true
+    name: appservices1
+    listeners: [client, federation, resources]
+
+  pusher1:
+    enabled: true
+    generic: true
+    app: generic_worker
+    name: pusher1
+    listeners: [client, federation, resources]
+
+  pusher2:
+    enabled: true
+    generic: true
+    app: generic_worker
+    name: pusher2
+    listeners: [client, federation, resources]
+
+  sync_worker1:
+    name: sync_worker1
+    app: generic_worker
+    enabled: true
+    generic: true
+    listeners: [client, federation, resources]
+    csPaths:
+      - "/_matrix/client/(r0|v3)/sync$"
+      - "/_matrix/client/(api/v1|r0|v3)/events$"
+      - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+      - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+
+  sync_worker2:
+    name: sync_worker2
+    app: generic_worker
+    enabled: true
+    generic: true
+    listeners: [client, federation, resources]
+    csPaths:
+      - "/_matrix/client/(r0|v3)/sync$"
+      - "/_matrix/client/(api/v1|r0|v3)/events$"
+      - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+      - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+
+  media_repository1:
+    name: media_repository1
+    enabled: true
+    generic: true
+    app: media_repository
+    listeners: [media]
+    paths:
+      - "/_matrix/media/"
+      - "/_matrix/client/v1/media/"
+      - "/_matrix/federation/v1/media/"
+    csPaths:
+      - "/_synapse/admin/v1/purge_media_cache$"
+      - "/_synapse/admin/v1/room/.*/media.*$"
+      - "/_synapse/admin/v1/user/.*/media.*$"
+      - "/_synapse/admin/v1/media/.*$"
+      - "/_synapse/admin/v1/quarantine_media/.*$"
+      - "/_synapse/admin/v1/users/.*/media$"
+
+  media_repository2:
+    name: media_repository2
+    enabled: true
+    generic: true
+    app: media_repository
+    listeners: [media]
+    csPaths:
+      - "/_matrix/media/.*"
+      - "/_synapse/admin/v1/purge_media_cache$"
+      - "/_synapse/admin/v1/room/.*/media"
+      - "/_synapse/admin/v1/user/.*/media"
+      - "/_synapse/admin/v1/media/"
+      - "/_synapse/admin/v1/quarantine_media/"
+      - "/_synapse/admin/v1/users/.*/media$"
+    paths:
+      - "/_matrix/media/.*"
+      - "/_matrix/client/v1/media/.*"
+      - "/_matrix/federation/v1/media/.*"
+
+## This will set up a Lighttpd server to respond to any
+## /.well-known/matrix/server requests, to make federation possible without
+## adding SRV-records to DNS.
+##
+wellknown:
+  enabled: true
+  replicaCount: 1
+
+  # Lighttpd does not bind on IPv6 by default, although this is required in
+  # Ipv6-only clusters.
+  useIpv6: false
+
+  ## The host and port combo to serve on .well-known/matrix/server.
+  ##
+  server:
+    m.server: matrix.jpeg.gay:443
+
+  ## Data to serve on .well-known/matrix/client.
+  ##
+  client:
+    m.homeserver:
+      base_url: https://matrix.jpeg.gay
+
+  ## Configuration for the wellknown service.
+  ##
+  service:
+    type: LoadBalancer
+    port: 80
+
+  ## Extra data objects to serve under .well-known/matrix/<data>
+  ## Dictionaries will be JSON converted, plain strings will be served as they are
+  ##
+  extraData:
+    ## MSC1929 example;
+    support:
+      admins:
+        - matrix_id: '@annie444:jpeg.gay'
+          email_address: 'annie.ehler.4@gmai.com'
+          role: 'admin'
+            # support_page: 'https://example.com/support'
+
+  ## A custom htdocs path, useful when running another image.
+  ##
+  htdocsPath: /var/www/localhost/htdocs
+
+  ## The lighttpd image to run.
+  ##
+  image:
+    repository: ghcr.io/rtsp/docker-lighttpd
+    tag: latest
+    pullPolicy: Always
+
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+
+  ## Configuration for the pod security policy.
+  ##
+  podSecurityContext:
+    fsGroup: 101
+    runAsGroup: 101
+    runAsUser: 100
+    readOnlyRootFilesystem: false
+    fsGroupChangePolicy: "Always"
+    allowPrivilegeEscalation: false
+
+  ## Configuration for the container security policy.
+  ##
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    runAsUser: 100
+    fsGroupChangePolicy: "Always"
+
+  ## Resource configuration to apply to the well-known server.
+  ##
+  resources: {}
+  #  limits:
+  #    cpu: 5m
+  #    memory: 15Mi
+  #  requests:
+  #    cpu: 5m
+  #    memory: 15Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+postgresql:
+  enabled: false
+
+externalPostgresql:
+  port: 5432
+  username: synapse
+  database: synapse
+  sslmode: disabled
+  extraArgs: {}
+
+redis:
+  enabled: false
+
+externalRedis:
+  port: 6379
+  dbid: 0
+
+persistence:
+  enabled: true
+  # existingClaim: synapse-data
+  accessMode: ReadWriteOnce
+  size: 50Gi
+
+volumePermissions:
+  enabled: false
+
+  uid: 666
+  gid: 666
+
+  image:
+    repository: alpine
+    tag: latest
+    pullPolicy: Always
+
+  resources: {}
+  # resources:
+  #   requests:
+  #     memory: 128Mi
+  #     cpu: 100m
+
+service:
+  type: LoadBalancer
+  port: 8008
+  targetPort: http
+
+ingress:
+  enabled: true
+
+  traefikPaths: false
+
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      # Extract username from access token passed as URL parameter
+      map $arg_access_token $accesstoken_from_urlparam {
+          # Defaults to just passing back the whole accesstoken
+          default   $arg_access_token;
+          # Try to extract username part from accesstoken URL parameter
+          "~syt_(?<username>.*?)_.*"           $username;
+      }
+
+      # Extract username from access token passed as authorization header
+      map $http_authorization $mxid_localpart {
+          # Defaults to just passing back the whole accesstoken
+          default                              $http_authorization;
+          # Try to extract username part from accesstoken header
+          "~Bearer syt_(?<username>.*?)_.*"    $username;
+          # if no authorization-header exist, try mapper for URL parameter "access_token"
+          ""                                   $accesstoken_from_urlparam;
+      }
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$mxid_localpart"
+
+  csHosts:
+    - matrix.jpeg.gay
+
+  ## Additional hosts to add to the ingress configuration for handling
+  ## Server-to-Server API requests.
+  ##
+  ## NB; config.serverName is included if includeServerName is set. (default)
+  ##
+  hosts:
+    - matrix.jpeg.gay
+
+  ## Additional hosts to add to the ingress configuration for handling
+  ## well-known requests.
+  ##
+  ## NB; config.serverName is included if includeServerName is set. (default)
+  ##
+  wkHosts: 
+    - matrix.jpeg.gay
+
+  ## Additional paths to add to the Server-to-Server ingress blocks, will be
+  ## inserted before the /_matrix catch-all path.
+  ##
+  paths:
+  #  # K8s 1.19+
+    - path: /_matrix/media
+      pathType: Prefix
+      backend:
+        service:
+          name: matrix-media-repo
+          port: 
+            number: 8000
+    # K8s <1.19
+    #- path: /_matrix/media
+    #  backend:
+    #    serviceName: matrix-media-repo
+    #    servicePort: 8000
+
+  ## Additional paths to add to the Client-to-Server ingress blocks, will be
+  ## inserted before the /_matrix and /_synapse catch-all paths.
+  ##
+  csPaths:
+  #  # K8s 1.19+
+    - path: /_matrix/media
+      pathType: Prefix
+      backend:
+        service:
+          name: matrix-media-repo
+          port:
+            number: 8000
+              #              ## K8s <1.19
+              #    - path: /_matrix/media
+              #      backend:
+              #        serviceName: matrix-media-repo
+              #        servicePort: 8000
+
+  ## Should the /_synapse path be included in the ingress, admin APIs are
+  ## provided under this path.
+  ##
+  includeUnderscoreSynapse: true
+
+  ## Should config.serverName be included in the list of ingress paths, can be
+  ## set to false if the main domain is managed in some external way.
+  ##
+  includeServerName: true
+
+  ## TLS configuration to include in the ingress configuration
+  ##
+  tls:
+   - secretName: matrix-tls
+     hosts:
+       - jpeg.gay
+       - matrix.jpeg.gay
+
+  ## Set the name of the IngressClass cluster resource (optional)
+  ## https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressSpec
+  className: nginx
+
+## Specifies whether a service account should be created, and annotations to add.
+##
+serviceAccount:
+  create: true
+  annotations: {}
+    # eks.amazonaws.com/role-arn: arn:aws:iam::000000000000:role/matrix-synapse
+  # name: non-default-service-name
+
