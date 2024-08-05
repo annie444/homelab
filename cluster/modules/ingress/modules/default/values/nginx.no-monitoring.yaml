@@ -1,6 +1,5 @@
-metrics:
-  enabled: false
-  serviceMonitor:
+controller:
+  metrics:
     enabled: false
-  prometheusRule:
-    enabled: false
+    serviceMonitor:
+      enabled: false

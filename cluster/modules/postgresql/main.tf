@@ -38,6 +38,8 @@ resource "kubernetes_secret" "postgresql_init" {
     export PGPASSWORD='${data.sops_file.postgres.data["postgres-password"]}'
     psql -U postgres -h localhost -c "CREATE USER matrix_media_repo WITH NOSUPERUSER CREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS ENCRYPTED PASSWORD '${data.sops_file.postgres.data["media-password"]}';"
     psql -U postgres -h localhost -c "CREATE DATABASE matrix_media_repo WITH OWNER = 'matrix_media_repo';"
+    psql -U postgres -h localhost -c "CREATE USER sliding_sync WITH NOSUPERUSER CREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS ENCRYPTED PASSWORD '${data.sops_file.postgres.data["sync-password"]}';"
+    psql -U postgres -h localhost -c "CREATE DATABASE sliding_sync WITH OWNER = 'sliding_sync';"
 
     EO_SCRIPT
   }

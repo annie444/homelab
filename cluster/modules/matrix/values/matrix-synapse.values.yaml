@@ -84,10 +84,20 @@ config:
   useStructuredLogging: true
 
 extraConfig:
+  allow_profile_lookup_over_federation: true
+  allow_device_name_lookup_over_federation: false
+  federation:
+    client_timeout: 180s
+    max_short_retry_delay: 7s
+    max_long_retry_delay: 100s
+    max_short_retries: 5
+    max_long_retries: 20
+    destination_min_retry_interval: 30s
+    destination_retry_multiplier: 5
+    destination_max_retry_interval: 12h
   password_config:
     enabled: true
     localdb_enabled: true
-
     policy:
        enabled: true
        minimum_length: 14
@@ -126,13 +136,12 @@ extraConfig:
     only_from_local_users: true
   forget_rooms_on_leave: true
   dynamic_thumbnails: true
-  enable_media_repo: true
+  enable_media_repo: false
   enable_registration_captcha: true  
   run_background_tasks_on: generic_background
   stream_writers:
     events:
-      - event_streamer1
-      - event_streamer2
+      - event_streamer
     typing: typing_streamer
     to_device: device_streamer
     account_data: account_streamer
@@ -140,10 +149,9 @@ extraConfig:
     presence: presence_streamer
     push_rules: push_streamer
   federation_sender_instances:
-    - federation_sender1
-    - federation_sender2
+    - federation_sender
   outbound_federation_restricted_to:
-    - federation_sender1
+    - federation_sender
   update_user_directory_from_worker: userdir1
   notify_appservices_from_worker: appservices1
   media_instance_running_background_jobs: media_repository1
@@ -304,21 +312,47 @@ workers:
     generic: true
     app: generic_worker
     name: generic_background
+    listeners: [metrics]
 
   generic_worker1:
     enabled: true
     generic: true
     app: generic_worker
     name: generic_worker1
-    listeners: [client, federation]
+    listeners: [client, federation, metrics]
     csPaths:
-    #  ## Sync requests
+      ## Sync requests
       - "/_matrix/client/(r0|v3)/sync$"
       - "/_matrix/client/(api/v1|r0|v3)/events$"
       - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
       - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
 
-    #  ## Client API requests
+      # Federation requests
+      - "/_matrix/federation/v1/event/"
+      - "/_matrix/federation/v1/state/"
+      - "/_matrix/federation/v1/state_ids/"
+      - "/_matrix/federation/v1/backfill/"
+      - "/_matrix/federation/v1/get_missing_events/"
+      - "/_matrix/federation/v1/publicRooms"
+      - "/_matrix/federation/v1/query/"
+      - "/_matrix/federation/v1/make_join/"
+      - "/_matrix/federation/v1/make_leave/"
+      - "/_matrix/federation/(v1|v2)/send_join/"
+      - "/_matrix/federation/(v1|v2)/send_leave/"
+      - "/_matrix/federation/v1/make_knock/"
+      - "/_matrix/federation/v1/send_knock/"
+      - "/_matrix/federation/(v1|v2)/invite/"
+      - "/_matrix/federation/v1/event_auth/"
+      - "/_matrix/federation/v1/timestamp_to_event/"
+      - "/_matrix/federation/v1/exchange_third_party_invite/"
+      - "/_matrix/federation/v1/user/devices/"
+      - "/_matrix/key/v2/query"
+      - "/_matrix/federation/v1/hierarchy/"
+
+      # Inbound federation transaction request
+      - "/_matrix/federation/v1/send/"
+
+      ## Client API requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
@@ -337,39 +371,85 @@ workers:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
 
-    #  ## Encryption requests
+      ## Encryption requests
       - "/_matrix/client/(r0|v3|unstable)/keys/query$"
       - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
       - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
       - "/_matrix/client/(r0|v3|unstable)/room_keys/"
 
-    #  ## Registration/login requests
+      ## Registration/login requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
       - "/_matrix/client/(r0|v3|unstable)/register$"
       - "/_matrix/client/v1/register/m.login.registration_token/validity$"
 
-    #  ## Event sending requests
+      ## Event sending requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+      ## Search Requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/messages$"
+
+      # for all SSO providers
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login/sso/redirect"
+      - "/_synapse/client/pick_idp$"
+      - "/_synapse/client/pick_username"
+      - "/_synapse/client/new_user_consent$"
+      - "/_synapse/client/sso_register$"
+
+      # OpenID Connect requests.
+      - "/_synapse/client/oidc/callback$"
+
+      # SAML requests.
+      - "/_synapse/client/saml2/authn_response$"
+
+      # CAS requests.
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$"
+
+
 
   generic_worker2:
     enabled: true
     generic: true
     app: generic_worker
     name: generic_worker2
-    listeners: [client, federation]
+    listeners: [client, federation, metrics]
     csPaths:
-    #  ## Sync requests
+      ## Sync requests
       - "/_matrix/client/(r0|v3)/sync$"
       - "/_matrix/client/(api/v1|r0|v3)/events$"
       - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
       - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
 
-    #  ## Client API requests
+      # Federation requests
+      - "/_matrix/federation/v1/event/"
+      - "/_matrix/federation/v1/state/"
+      - "/_matrix/federation/v1/state_ids/"
+      - "/_matrix/federation/v1/backfill/"
+      - "/_matrix/federation/v1/get_missing_events/"
+      - "/_matrix/federation/v1/publicRooms"
+      - "/_matrix/federation/v1/query/"
+      - "/_matrix/federation/v1/make_join/"
+      - "/_matrix/federation/v1/make_leave/"
+      - "/_matrix/federation/(v1|v2)/send_join/"
+      - "/_matrix/federation/(v1|v2)/send_leave/"
+      - "/_matrix/federation/v1/make_knock/"
+      - "/_matrix/federation/v1/send_knock/"
+      - "/_matrix/federation/(v1|v2)/invite/"
+      - "/_matrix/federation/v1/event_auth/"
+      - "/_matrix/federation/v1/timestamp_to_event/"
+      - "/_matrix/federation/v1/exchange_third_party_invite/"
+      - "/_matrix/federation/v1/user/devices/"
+      - "/_matrix/key/v2/query"
+      - "/_matrix/federation/v1/hierarchy/"
+
+      # Inbound federation transaction request
+      - "/_matrix/federation/v1/send/"
+
+      ## Client API requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
@@ -388,39 +468,83 @@ workers:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
 
-    #  ## Encryption requests
+      ## Encryption requests
       - "/_matrix/client/(r0|v3|unstable)/keys/query$"
       - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
       - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
       - "/_matrix/client/(r0|v3|unstable)/room_keys/"
 
-    #  ## Registration/login requests
+      ## Registration/login requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
       - "/_matrix/client/(r0|v3|unstable)/register$"
       - "/_matrix/client/v1/register/m.login.registration_token/validity$"
 
-    #  ## Event sending requests
+      ## Event sending requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+      ## Search Requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/messages$"
+
+      # for all SSO providers
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login/sso/redirect"
+      - "/_synapse/client/pick_idp$"
+      - "/_synapse/client/pick_username"
+      - "/_synapse/client/new_user_consent$"
+      - "/_synapse/client/sso_register$"
+
+      # OpenID Connect requests.
+      - "/_synapse/client/oidc/callback$"
+
+      # SAML requests.
+      - "/_synapse/client/saml2/authn_response$"
+
+      # CAS requests.
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$"
 
   generic_worker3:
     enabled: true
     generic: true
     app: generic_worker
     name: generic_worker3
-    listeners: [client, federation]
+    listeners: [client, federation, metrics]
     csPaths:
-    #  ## Sync requests
+      ## Sync requests
       - "/_matrix/client/(r0|v3)/sync$"
       - "/_matrix/client/(api/v1|r0|v3)/events$"
       - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
       - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
 
-    #  ## Client API requests
+      # Federation requests
+      - "/_matrix/federation/v1/event/"
+      - "/_matrix/federation/v1/state/"
+      - "/_matrix/federation/v1/state_ids/"
+      - "/_matrix/federation/v1/backfill/"
+      - "/_matrix/federation/v1/get_missing_events/"
+      - "/_matrix/federation/v1/publicRooms"
+      - "/_matrix/federation/v1/query/"
+      - "/_matrix/federation/v1/make_join/"
+      - "/_matrix/federation/v1/make_leave/"
+      - "/_matrix/federation/(v1|v2)/send_join/"
+      - "/_matrix/federation/(v1|v2)/send_leave/"
+      - "/_matrix/federation/v1/make_knock/"
+      - "/_matrix/federation/v1/send_knock/"
+      - "/_matrix/federation/(v1|v2)/invite/"
+      - "/_matrix/federation/v1/event_auth/"
+      - "/_matrix/federation/v1/timestamp_to_event/"
+      - "/_matrix/federation/v1/exchange_third_party_invite/"
+      - "/_matrix/federation/v1/user/devices/"
+      - "/_matrix/key/v2/query"
+      - "/_matrix/federation/v1/hierarchy/"
+
+      # Inbound federation transaction request
+      - "/_matrix/federation/v1/send/"
+
+      ## Client API requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
@@ -439,18 +563,18 @@ workers:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
 
-    #  ## Encryption requests
+      ## Encryption requests
       - "/_matrix/client/(r0|v3|unstable)/keys/query$"
       - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
       - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
       - "/_matrix/client/(r0|v3|unstable)/room_keys/"
 
-    #  ## Registration/login requests
+      ## Registration/login requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
       - "/_matrix/client/(r0|v3|unstable)/register$"
       - "/_matrix/client/v1/register/m.login.registration_token/validity$"
 
-    #  ## Event sending requests
+      ## Event sending requests
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
@@ -458,74 +582,39 @@ workers:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
       - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
 
-    #  ## User directory search requests
-    #  - "/_matrix/client/(r0|v3|unstable)/user_directory/search"
+      ## Search Requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/messages$"
 
-    #  ## Worker event streams
-    #  ## See https://matrix-org.github.io/synapse/latest/workers.html#stream-writers
-    #  ##
+      # for all SSO providers
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login/sso/redirect"
+      - "/_synapse/client/pick_idp$"
+      - "/_synapse/client/pick_username"
+      - "/_synapse/client/new_user_consent$"
+      - "/_synapse/client/sso_register$"
 
-    #  ## The typing event stream
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
+      # OpenID Connect requests.
+      - "/_synapse/client/oidc/callback$"
 
-    #  ## The to_device event stream
-    #  - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
+      # SAML requests.
+      - "/_synapse/client/saml2/authn_response$"
 
-    #  ## The account_data event stream
-    #  - "/_matrix/client/(r0|v3|unstable)/.*/tags"
-    #  - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
-
-    #  ## The receipts event stream
-    #  - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
-    #  - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
-
-    #  ## The presence event stream
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
-
-    #paths:
-    #  ## Federation requests
-    #  - "/_matrix/federation/v1/event/"
-    #  - "/_matrix/federation/v1/state/"
-    #  - "/_matrix/federation/v1/state_ids/"
-    #  - "/_matrix/federation/v1/backfill/"
-    #  - "/_matrix/federation/v1/get_missing_events/"
-    #  - "/_matrix/federation/v1/publicRooms"
-    #  - "/_matrix/federation/v1/query/"
-    #  - "/_matrix/federation/v1/make_join/"
-    #  - "/_matrix/federation/v1/make_leave/"
-    #  - "/_matrix/federation/(v1|v2)/send_join/"
-    #  - "/_matrix/federation/(v1|v2)/send_leave/"
-    #  - "/_matrix/federation/(v1|v2)/invite/"
-    #  - "/_matrix/federation/v1/event_auth/"
-    #  - "/_matrix/federation/v1/exchange_third_party_invite/"
-    #  - "/_matrix/federation/v1/user/devices/"
-    #  - "/_matrix/key/v2/query"
-    #  - "/_matrix/federation/v1/hierarchy/"
-
-    #  ## Inbound federation transaction request
-    #  - "/_matrix/federation/v1/send/"
+      # CAS requests.
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$"
 
   ## https://github.com/matrix-org/synapse/blob/develop/docs/workers.md#load-balancing
-  event_streamer1:
-    name: event_streamer1
+  event_streamer:
+    name: event_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [replication]
-
-  event_streamer2:
-    name: event_streamer2
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [replication]
+    listeners: [replication, metrics, client, federation]
 
   typing_streamer:
     name: typing_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [client, replication]
+    listeners: [client, replication, metrics]
     csPaths:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
 
@@ -534,7 +623,7 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [client, replication]
+    listeners: [client, replication, metrics]
     csPaths:
       - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
 
@@ -543,7 +632,7 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [replication]
+    listeners: [client, replication, metrics]
     csPaths:
       - "/_matrix/client/(r0|v3|unstable)/.*/tags"
       - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
@@ -553,7 +642,7 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [replication]
+    listeners: [replication, metrics, client]
     csPaths:
       - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
       - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
@@ -563,7 +652,7 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [replication]
+    listeners: [client, replication, metrics]
     csPaths:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
 
@@ -572,74 +661,23 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [replication]
+    listeners: [client, replication, metrics]
     csPaths:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/"
 
-  federation_sender1:
-    name: federation_sender1
+  federation_sender:
+    name: federation_sender
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, replication]
-    csPaths:
-      - "/_matrix/federation/v1/event/"
-      - "/_matrix/federation/v1/state/"
-      - "/_matrix/federation/v1/state_ids/"
-      - "/_matrix/federation/v1/backfill/"
-      - "/_matrix/federation/v1/get_missing_events/"
-      - "/_matrix/federation/v1/publicRooms"
-      - "/_matrix/federation/v1/query/"
-      - "/_matrix/federation/v1/make_join/"
-      - "/_matrix/federation/v1/make_leave/"
-      - "/_matrix/federation/(v1|v2)/send_join/"
-      - "/_matrix/federation/(v1|v2)/send_leave/"
-      - "/_matrix/federation/v1/make_knock/"
-      - "/_matrix/federation/v1/send_knock/"
-      - "/_matrix/federation/(v1|v2)/invite/"
-      - "/_matrix/federation/v1/event_auth/"
-      - "/_matrix/federation/v1/timestamp_to_event/"
-      - "/_matrix/federation/v1/exchange_third_party_invite/"
-      - "/_matrix/federation/v1/user/devices/"
-      - "/_matrix/key/v2/query"
-      - "/_matrix/federation/v1/hierarchy/"
-      - "/_matrix/federation/v1/send/"
-
-  federation_sender2:
-    name: federation_sender2
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [federation]
-    csPaths:
-      - "/_matrix/federation/v1/event/"
-      - "/_matrix/federation/v1/state/"
-      - "/_matrix/federation/v1/state_ids/"
-      - "/_matrix/federation/v1/backfill/"
-      - "/_matrix/federation/v1/get_missing_events/"
-      - "/_matrix/federation/v1/publicRooms"
-      - "/_matrix/federation/v1/query/"
-      - "/_matrix/federation/v1/make_join/"
-      - "/_matrix/federation/v1/make_leave/"
-      - "/_matrix/federation/(v1|v2)/send_join/"
-      - "/_matrix/federation/(v1|v2)/send_leave/"
-      - "/_matrix/federation/v1/make_knock/"
-      - "/_matrix/federation/v1/send_knock/"
-      - "/_matrix/federation/(v1|v2)/invite/"
-      - "/_matrix/federation/v1/event_auth/"
-      - "/_matrix/federation/v1/timestamp_to_event/"
-      - "/_matrix/federation/v1/exchange_third_party_invite/"
-      - "/_matrix/federation/v1/user/devices/"
-      - "/_matrix/key/v2/query"
-      - "/_matrix/federation/v1/hierarchy/"
-      - "/_matrix/federation/v1/send/"
+    listeners: [federation, replication, metrics]
 
   userdir1:
     enabled: true
     generic: true
     app: generic_worker
     name: userdir1
-    listers: [client]
+    listers: [client, metrics]
     csPaths:
       - "/_matrix/client/(r0|v3|unstable)/user_directory/search$"
 
@@ -648,57 +686,32 @@ workers:
     enabled: true
     generic: true
     name: appservices1
-    listeners: []
+    listeners: [metrics]
 
   pusher1:
     enabled: true
     generic: true
     app: generic_worker
     name: pusher1
-    listeners: []
+    listeners: [metrics]
 
   pusher2:
     enabled: true
     generic: true
     app: generic_worker
     name: pusher2
-    listerners: []
-
-  sync_worker1:
-    name: sync_worker1
-    app: generic_worker
-    enabled: true
-    generic: true
-    listeners: [client]
-    csPaths:
-      - "/_matrix/client/(r0|v3)/sync$"
-      - "/_matrix/client/(api/v1|r0|v3)/events$"
-      - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
-      - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
-
-  sync_worker2:
-    name: sync_worker2
-    app: generic_worker
-    enabled: true
-    generic: true
-    listeners: [client]
-    csPaths:
-      - "/_matrix/client/(r0|v3)/sync$"
-      - "/_matrix/client/(api/v1|r0|v3)/events$"
-      - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
-      - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+    listerners: [metrics]
 
   media_repository1:
     name: media_repository1
     enabled: true
-    generic: true
+    generic: false
     app: media_repository
-    listeners: [media]
+    listeners: [media, metrics, client, federation]
     paths:
-      - "/_matrix/media/"
-      - "/_matrix/client/v1/media/"
-      - "/_matrix/federation/v1/media/"
-    csPaths:
+      - "/_matrix/media/.*"
+      - "/_matrix/client/v1/media/.*"
+      - "/_matrix/federation/v1/media/.*"
       - "/_synapse/admin/v1/purge_media_cache$"
       - "/_synapse/admin/v1/room/.*/media.*$"
       - "/_synapse/admin/v1/user/.*/media.*$"
@@ -709,18 +722,17 @@ workers:
   media_repository2:
     name: media_repository2
     enabled: true
-    generic: true
+    generic: false
     app: media_repository
-    listeners: [media]
+    listeners: [media, metrics, client, federation]
     csPaths:
-      - "/_matrix/media/.*"
+      - "/_matrix/media/"
       - "/_synapse/admin/v1/purge_media_cache$"
       - "/_synapse/admin/v1/room/.*/media"
       - "/_synapse/admin/v1/user/.*/media"
       - "/_synapse/admin/v1/media/"
       - "/_synapse/admin/v1/quarantine_media/"
       - "/_synapse/admin/v1/users/.*/media$"
-    paths:
       - "/_matrix/media/.*"
       - "/_matrix/client/v1/media/.*"
       - "/_matrix/federation/v1/media/.*"
@@ -747,6 +759,9 @@ wellknown:
   client:
     m.homeserver:
       base_url: https://matrix.jpeg.gay
+    org.matrix.msc3575.proxy:
+        url: https://syncv3.jpeg.gay
+    
 
   ## Configuration for the wellknown service.
   ##

@@ -1,0 +1,78 @@
+---
+image:
+  repository: ghcr.io/matrix-org/sliding-sync
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+replicaCount: 1
+
+matrixServer: 'https://matrix.jpeg.gay'
+
+## Additional environment variables will be stored in the configuration secret
+extraEnv: {}
+  # SYNCV3_JAEGER_URL: http://jaeger.example.com
+  # SYNCV3_DEBUG: "true"
+
+nameOverride: "sliding-sync"
+fullnameOverride: "sliding-sync"
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: true
+  serveSimpleClient: true
+
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - syncv3.jepg.gay
+
+  tls:
+    - secretName: syncv3.jpeg.gay
+      hosts:
+        - syncv3.jpeg.gay
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+postgresql:
+  enabled: false
+
+externalPostgresql:
+  database: sliding_sync
+  username: sliding_sync
+  sslmode: disable

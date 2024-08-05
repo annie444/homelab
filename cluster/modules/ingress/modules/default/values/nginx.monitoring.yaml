@@ -1,12 +1,24 @@
-metrics:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-  prometheusRule:
-    enabled: true
 controller:
   metrics:
-    servicemonitor:
+    enabled: true
+    serviceMonitor:
       enabled: true
-    prometheusRule:
-      enabled: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+        - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_scheme]
+          action: replace
+          targetLabel: __scheme__
+          regex: (https?)
+        - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          targetLabel: __metrics_path__
+          regex: (.+)
+        - sourceLabels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          targetLabel: __address__
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+        - sourceLabels: [__meta_kubernetes_service_name]
+          regex: prometheus-server
+          action: drop

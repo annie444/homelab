@@ -53,3 +53,5 @@ resource "helm_release" "ingress_nginx" {
     value = var.ingress_class
   }
 }
+
+

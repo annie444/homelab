@@ -225,9 +225,66 @@ resource "helm_release" "matrix_synapse" {
     value = data.sops_file.matrix.data["synapse.workerreplicationsecret"]
   }
 
-
 }
 
+resource "helm_release" "sliding_sync" {
+  name       = "sliding-sync"
+  namespace  = kubernetes_namespace.matrix.metadata[0].name
+  chart      = "sliding-sync-proxy"
+  repository = "https://ananace.gitlab.io/charts"
+  version    = "0.2.13"
+
+  values = [
+    file("${path.module}/values/sliding-sync.values.yaml")
+  ]
+
+  set_sensitive {
+    name  = "syncSecret"
+    value = data.sops_file.matrix.data["sync.secret"]
+  }
+
+  set {
+    name  = "ingress.className"
+    value = var.ingress_class
+  }
+
+  set {
+    name  = "externalPostgresql.host"
+    value = var.postgresql_host
+  }
+
+  set_sensitive {
+    name  = "externalPostgresql.password"
+    value = data.sops_file.matrix.data["sync.db.password"]
+  }
+}
+
+resource "helm_release" "synatainer" {
+  name       = "synatainer"
+  namespace  = kubernetes_namespace.matrix.metadata[0].name
+  chart      = "synatainer"
+  repository = "https://ananace.gitlab.io/charts"
+  version    = "1.1.4"
+
+  values = [
+    file("${path.module}/values/synatainer.values.yaml")
+  ]
+
+  set {
+    name  = "postgresql.host"
+    value = var.postgresql_host
+  }
+
+  set_sensitive {
+    name  = "postgresql.password"
+    value = data.sops_file.matrix.data["synapse.db.password"]
+  }
+
+  set_sensitive {
+    name  = "synapse.token"
+    value = data.sops_file.matrix.data["synatainer.token"]
+  }
+}
 
 resource "kubernetes_manifest" "matrix_podmonitor" {
   manifest = {
@@ -371,3 +428,5 @@ resource "kubernetes_manifest" "prometheus_matrix_rules" {
     }
   }
 }
+
+
