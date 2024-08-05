@@ -19,7 +19,7 @@ resource "helm_release" "element_web" {
   max_history     = 10
 
   values = [
-    file("../../values/element-web.values.yaml")
+    file("${path.module}/values/element-web.values.yaml")
   ]
 
   set {

@@ -8,7 +8,7 @@ resource "kubernetes_namespace" "monitoring" {
 }
 
 data "sops_file" "grafana_credentials" {
-  source_file = "./secrets/grafana.yaml"
+  source_file = "${path.module}/secrets/grafana.yaml"
 }
 
 resource "kubernetes_secret" "grafana_admin_credentials" {
@@ -80,7 +80,7 @@ resource "helm_release" "prometheus_stack" {
   max_history     = 10
 
   values = [
-    file("./values/prometheus-stack.values.yaml")
+    file("${path.module}/values/prometheus-stack.values.yaml")
   ]
 }
 
@@ -139,11 +139,11 @@ resource "helm_release" "alloy" {
   max_history     = 10
 
   values = concat(
-    [file("./values/alloy.values.yaml")],
+    [file("${path.module}/values/alloy.values.yaml")],
     (
       local.monitoring_enabled ?
-      [file("./values/alloy.monitoring.values.yaml")] :
-      [file("./values/alloy.no-monitoring.values.yaml")]
+      [file("${path.module}/values/alloy.monitoring.yaml")] :
+      [file("${path.module}/values/alloy.no-monitoring.yaml")]
     )
   )
 
@@ -161,7 +161,7 @@ resource "helm_release" "loki" {
   max_history     = 10
 
   values = [
-    file("./values/loki.values.yaml")
+    file("${path.module}/values/loki.values.yaml")
   ]
 }
 

@@ -1,12 +1,12 @@
 variable "prefix" {
-  type = string
-  default = null
+  type     = string
+  default  = null
   nullable = true
 }
 
 variable "suffix" {
-  type = string
-  default = null
+  type     = string
+  default  = null
   nullable = true
 }
 
@@ -15,16 +15,16 @@ variable "monitoring" {
 }
 
 variable "extra_values" {
-  type = list(string)
+  type    = list(string)
   default = []
 }
 
 variable "ingress_class" {
-  type = string
+  type     = string
   nullable = false
 }
 
 variable "ip_pool" {
-  type = string
+  type     = string
   nullable = true
 }

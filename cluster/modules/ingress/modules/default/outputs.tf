@@ -1,5 +1,6 @@
 output "ingress_class" {
-  value = yamldecode(helm_release.ingress_nginx.values[0]).controller.ingressClass
+  value      = var.ingress_class
+  depends_on = [helm_release.ingress_nginx]
 }
 
 output "namespace" {

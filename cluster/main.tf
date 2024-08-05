@@ -45,14 +45,13 @@ module "postgresql" {
 module "matrix" {
   source = "./modules/matrix"
 
-  monitoring            = module.monitoring.enabled
-  postgresql_host       = module.postgresql.host
-  media_storage_class   = module.rook_ceph.block_storage_class
-  cluster_issuer        = module.ingress.cluster_issuer
-  ingress_class         = module.ingress.external_ingress
-  synapse_storage_class = module.rook_ceph.fs_storage_class
-  redis_host            = module.redis.host
-  ingress_namespace     = module.ingress.external_namespace
+  monitoring        = module.monitoring.enabled
+  postgresql_host   = module.postgresql.host
+  storage_class     = module.rook_ceph.fs_storage_class
+  cluster_issuer    = module.ingress.cluster_issuer
+  ingress_class     = module.ingress.external_ingress
+  redis_host        = module.redis.host
+  ingress_namespace = module.ingress.external_namespace
 }
 
 module "metallb" {

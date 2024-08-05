@@ -19,11 +19,11 @@ resource "helm_release" "pihole" {
   max_history     = 10
 
   values = concat(
-    [file("./values/pihole.values.yaml")],
+    [file("${path.module}/values/pihole.values.yaml")],
     (
       var.monitoring ?
-      [file("./values/pihole.monitoring.values.yaml")] :
-      [file("./values/pihole.no-monitoring.values.yaml")]
+      [file("${path.module}/values/pihole.monitoring.yaml")] :
+      [file("${path.module}/values/pihole.no-monitoring.yaml")]
     )
   )
 
@@ -40,7 +40,7 @@ resource "helm_release" "pihole" {
 
 data "kubernetes_service" "pihole" {
   metadata {
-    name      = "${helm_release.pihole.name}-svc"
+    name      = "${helm_release.pihole.name}-web"
     namespace = kubernetes_namespace.pihole.metadata[0].name
   }
 }
@@ -57,7 +57,7 @@ resource "helm_release" "externaldns_pihole" {
   max_history     = 10
 
   values = [
-    file("./values/externaldns.values.yaml")
+    file("${path.module}/values/externaldns.values.yaml")
   ]
 
   set_list {

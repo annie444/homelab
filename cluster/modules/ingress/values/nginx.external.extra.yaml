@@ -4,16 +4,40 @@ service:
     metallb.universe.tf/loadBalancerIPs: 192.168.1.240
   loadBalancerIP: 192.168.1.240
 extraArgs:
-  tcp-services-configmap: ingress-nginx/tcp-services
-  udp-services-configmap: ingress-nginx/udp-services
+  tcp-services-configmap: nginx-system/tcp-services
+  udp-services-configmap: nginx-system/udp-services
 controller:
+  config:
+    annotations-risk-level: Critical
+    allow-cross-namespace-resources: true
+    allow-snippet-annotations: true
+    use-http2: true
+    load-balance: round_robin
+    http-snippet: |
+      # Extract username from access token passed as URL parameter
+      map $arg_access_token $accesstoken_from_urlparam {
+          # Defaults to just passing back the whole accesstoken
+          default   $arg_access_token;
+          # Try to extract username part from accesstoken URL parameter
+          "~syt_(?<username>.*?)_.*"           $username;
+      }
+
+      # Extract username from access token passed as authorization header
+      map $http_authorization $mxid_localpart {
+          # Defaults to just passing back the whole accesstoken
+          default                              $http_authorization;
+          # Try to extract username part from accesstoken header
+          "~Bearer syt_(?<username>.*?)_.*"    $username;
+          # if no authorization-header exist, try mapper for URL parameter "access_token"
+          ""                                   $accesstoken_from_urlparam;
+      } 
   tcp:
-    configMapNamespace: ingress-nginx
+    configMapNamespace: nginx-system
     annotations:
       app: ingress-nginx
       component: tcp-services-configmap
   udp:
-    configMapNamespace: ingress-nginx
+    configMapNamespace: nginx-system
     annotations:
       app: ingress-nginx
       component: udp-services-configmap

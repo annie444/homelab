@@ -19,11 +19,11 @@ resource "helm_release" "rook_ceph" {
   max_history     = 10
 
   values = concat(
-    [file("./values/rook-ceph.values.yaml")],
+    [file("${path.module}/values/rook-ceph.values.yaml")],
     (
       var.monitoring ?
-      [file("./values/rook-ceph.monitoring.values.yaml")] :
-      [file("./values/rook-ceph.no-monitoring.values.yaml")]
+      [file("${path.module}/values/rook-ceph.monitoring.yaml")] :
+      [file("${path.module}/values/rook-ceph.no-monitoring.yaml")]
     )
   )
 }
@@ -40,11 +40,11 @@ resource "helm_release" "rook_ceph_cluster" {
   max_history     = 10
 
   values = concat(
-    [file("./values/rook-ceph-cluster.values.yaml")],
+    [file("${path.module}/values/rook-ceph-cluster.values.yaml")],
     (
       var.monitoring ?
-      [file("./values/rook-ceph-cluster.monitoring.values.yaml")] :
-      [file("./values/rook-ceph-cluster.no-monitoring.values.yaml")]
+      [file("${path.module}/values/rook-ceph-cluster.monitoring.yaml")] :
+      [file("${path.module}/values/rook-ceph-cluster.no-monitoring.yaml")]
     )
   )
 

@@ -1,9 +1,9 @@
 output "block_storage_class" {
-  value = yamldecode(helm_release.rook_ceph_cluster.values[0]).cephBlockPools[0].storageClass.name
+  value = helm_release.rook_ceph_cluster.values == null ? yamldecode(file("${path.module}/values/rook-ceph-cluster.values.yaml")).cephBlockPools[0].storageClass.name : merge([for val in helm_release.rook_ceph_cluster.values : yamldecode(val)]...).cephBlockPools[0].storageClass.name
 }
 
 output "fs_storage_class" {
-  value = yamldecode(helm_release.rook_ceph_cluster.values[0]).cephFileSystems[0].storageClass.name
+  value = helm_release.rook_ceph_cluster.values == null ? yamldecode(file("${path.module}/values/rook-ceph-cluster.values.yaml")).cephFileSystems[0].storageClass.name : merge([for val in helm_release.rook_ceph_cluster.values : yamldecode(val)]...).cephFileSystems[0].storageClass.name
 }
 
 output "namespace" {

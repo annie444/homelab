@@ -1,14 +1,7 @@
-variable "media_storage_class" {
+variable "storage_class" {
   type        = string
   description = "The storage class of the media bucket"
 }
-
-
-variable "synapse_storage_class" {
-  type        = string
-  description = "The storage class of the synapse instance"
-}
-
 
 variable "postgresql_host" {
   type        = string

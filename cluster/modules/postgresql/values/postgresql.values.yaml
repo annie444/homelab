@@ -17,6 +17,48 @@ auth:
     replicationPasswordKey: "replication-password"
   usePasswordFiles: false
 primary:
+  configuration: |
+    # - Connection Settings -
+    
+    listen_addresses = '*'
+    port = 5432
+    max_connections = 1000			# (change requires restart)
+    reserved_connections = 3		# (change requires restart)
+    superuser_reserved_connections = 3	# (change requires restart)
+
+    # - Authentication -
+
+    authentication_timeout = 1min		# 1s-600s
+    password_encryption = scram-sha-256	# scram-sha-256 or md5
+    scram_iterations = 4096
+
+    # - From https://pgtune.leopard.in.ua/ -
+
+    shared_buffers = 4GB
+    effective_cache_size = 12GB
+    maintenance_work_mem = 1GB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 300
+    work_mem = 1048kB
+    huge_pages = off
+    min_wal_size = 1GB
+    max_wal_size = 4GB
+    max_worker_processes = 8
+    max_parallel_workers_per_gather = 4
+    max_parallel_workers = 8
+    max_parallel_maintenance_workers = 4
+  resources:
+    requests:
+      cpu: 1
+      memory: 3072Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 8
+      memory: 16384Mi
+      ephemeral-storage: 2Gi
   initdb:
     args: "--lc-collate=C --lc-ctype=C"
   persistence:

@@ -1,18 +1,29 @@
-module "internal_ingress" {
+module "default_ingress" {
+  for_each = tomap({
+    external = {
+      monitoring    = var.monitoring
+      ingress_class = "nginx"
+      extra_values  = [file("${path.module}/values/nginx.external.extra.yaml")]
+      ip_pool       = var.ip_pool
+      prefix        = null
+      suffix        = null
+    },
+    internal = {
+      monitoring    = var.monitoring
+      ingress_class = "nginx-internal"
+      extra_values  = []
+      ip_pool       = var.ip_pool
+      prefix        = "internal"
+      suffix        = "internal"
+    }
+  })
   source        = "./modules/default"
-  prefix        = "internal"
-  suffix        = "internal"
-  monitoring    = var.monitoring
-  ingress_class = "nginx-internal"
-  ip_pool       = var.ip_pool
-}
-
-module "external_ingress" {
-  source        = "./modules/default"
-  monitoring    = var.monitoring
-  ingress_class = "nginx"
-  extra_values  = [file("./values/nginx.external.extra.yaml")]
-  ip_pool       = var.ip_pool
+  monitoring    = each.value.monitoring
+  ingress_class = each.value.ingress_class
+  extra_values  = each.value.extra_values
+  ip_pool       = each.value.ip_pool
+  prefix        = each.value.prefix
+  suffix        = each.value.suffix
 }
 
 resource "kubernetes_namespace" "cert_manager" {
@@ -79,7 +90,7 @@ resource "kubernetes_manifest" "cluster_issuer" {
           {
             "http01" = {
               "ingress" = {
-                "ingressClassName" = module.external_ingress.ingress_class
+                "ingressClassName" = module.default_ingress["external"].ingress_class
               }
             }
           }

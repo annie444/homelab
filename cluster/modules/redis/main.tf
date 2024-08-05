@@ -8,7 +8,7 @@ resource "kubernetes_namespace" "redis" {
 }
 
 data "sops_file" "redis" {
-  source_file = "./secrets/redis.yaml"
+  source_file = "${path.module}/secrets/redis.yaml"
 }
 
 resource "kubernetes_secret" "redis" {
@@ -36,11 +36,11 @@ resource "helm_release" "redis" {
   max_history     = 10
 
   values = concat(
-    [file("./values/redis.values.yaml")],
+    [file("${path.module}/values/redis.values.yaml")],
     (
       var.monitoring ?
-      [file("./values/redis.monitoring.values.yaml")] :
-      [file("./values/redis.no-monitoring.values.yaml")]
+      [file("${path.module}/values/redis.monitoring.yaml")] :
+      [file("${path.module}/values/redis.no-monitoring.yaml")]
     )
   )
 
@@ -100,8 +100,9 @@ resource "helm_release" "redis" {
   }
 }
 
-data "kubernetes_service" "redis" {
+data "kubernetes_service_v1" "redis" {
   metadata {
+    name      = "redis-master"
     namespace = helm_release.redis.namespace
     labels = {
       "app.kubernetes.io/component" = "master"

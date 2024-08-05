@@ -18,7 +18,7 @@ resource "helm_release" "metallb" {
   lint            = true
   max_history     = 10
 
-  values = (var.monitoring ? [file("./values/metallb.monitoring.yaml")] : [file("./values/metallb.no-monitoring.yaml")])
+  values = (var.monitoring ? [file("${path.module}/values/metallb.monitoring.yaml")] : [file("${path.module}/values/metallb.no-monitoring.yaml")])
 
   set {
     name  = "prometheus.serviceAccount"

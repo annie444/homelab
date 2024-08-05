@@ -25,15 +25,14 @@ resource "helm_release" "ingress_nginx" {
   max_history     = 10
 
   values = concat(
-    [file("./values/nginx.values.yaml")],
+    [file("${path.module}/values/nginx.values.yaml")],
     (
       var.monitoring ?
-      [file("./values/nginx.monitoring.yaml")] :
-      [file("./values/nginx.no-monitoring.yaml")]
+      [file("${path.module}/values/nginx.monitoring.yaml")] :
+      [file("${path.module}/values/nginx.no-monitoring.yaml")]
     ),
     var.extra_values
   )
-
 
   dynamic "set" {
     for_each = local.ip_pool

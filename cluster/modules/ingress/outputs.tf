@@ -1,9 +1,9 @@
 output "internal_ingress" {
-  value = module.internal_ingress.ingress_class
+  value = module.default_ingress["internal"].ingress_class
 }
 
 output "external_ingress" {
-  value = module.external_ingress.ingress_class
+  value = module.default_ingress["external"].ingress_class
 }
 
 output "cluster_issuer" {
@@ -11,19 +11,19 @@ output "cluster_issuer" {
 }
 
 output "internal_namespace" {
-  value = module.internal_ingress.namespace
+  value = module.default_ingress["internal"].namespace
 }
 
 output "external_namespace" {
-  value = module.external_ingress.namespace
+  value = module.default_ingress["external"].namespace
 }
 
 output "internal_notes" {
-  value = module.internal_ingress.notes
+  value = module.default_ingress["internal"].notes
 }
 
 output "external_notes" {
-  value = module.external_ingress.notes
+  value = module.default_ingress["external"].notes
 }
 
 output "cert_notes" {

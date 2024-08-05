@@ -8,7 +8,7 @@ resource "kubernetes_namespace" "postgresql" {
 }
 
 data "sops_file" "postgres" {
-  source_file = "./secrets/postgresql.yaml"
+  source_file = "${path.module}/secrets/postgresql.yaml"
 }
 
 resource "kubernetes_secret" "postgresql" {
@@ -35,10 +35,9 @@ resource "kubernetes_secret" "postgresql_init" {
   data = {
     "init.sh" = <<-EO_SCRIPT
     #!/bin/sh
-    psql postgresql://postgres:${data.sops_file.postgres.data["postgres-password"]}@localhost:5433/?sslmode=disable << E_O_SQL
-    CREATE USER matrix_media_repo WITH NOSUPERUSER CREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS ENCRYPTED PASSWORD '${data.sops_file.postgres.data["media-password"]}';
-    CREATE DATABASE matrix_media_repo WITH OWNER = 'matrix_media_repo';
-    E_O_SQL
+    export PGPASSWORD='${data.sops_file.postgres.data["postgres-password"]}'
+    psql -U postgres -h localhost -c "CREATE USER matrix_media_repo WITH NOSUPERUSER CREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS ENCRYPTED PASSWORD '${data.sops_file.postgres.data["media-password"]}';"
+    psql -U postgres -h localhost -c "CREATE DATABASE matrix_media_repo WITH OWNER = 'matrix_media_repo';"
 
     EO_SCRIPT
   }
@@ -58,11 +57,11 @@ resource "helm_release" "postgresql" {
   max_history     = 10
 
   values = concat(
-    [file("./values/postgresql.values.yaml")],
+    [file("${path.module}/values/postgresql.values.yaml")],
     (
       var.monitoring ?
-      [file("./values/postgresql.monitoring.values.yaml")] :
-      [file("./values/postgresql.no-monitoring.values.yaml")]
+      [file("${path.module}/values/postgresql.monitoring.yaml")] :
+      [file("${path.module}/values/postgresql.no-monitoring.yaml")]
     )
   )
 
@@ -87,9 +86,9 @@ resource "helm_release" "postgresql" {
   }
 }
 
-data "kubernetes_service" "postgresql" {
+data "kubernetes_service_v1" "postgresql" {
   metadata {
-    name      = "postgresql"
+    name      = helm_release.postgresql.name
     namespace = helm_release.postgresql.namespace
     labels = {
       "app.kubernetes.io/component" = "primary"

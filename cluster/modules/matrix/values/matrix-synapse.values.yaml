@@ -7,7 +7,7 @@ serverName: 'jpeg.gay'
 publicServerName: 'matrix.jpeg.gay'
 signingkey:
   job:
-    enabled: true
+    enabled: false
 
     annotations: {}
     #  argocd.argoproj.io/hook: PostSync
@@ -50,8 +50,8 @@ signingkey:
       runAsNonRoot: true
       runAsUser: 666
 
-  #existingSecret: matrix-synapse-signingkey
-  #existingSecretKey: signing.key
+  existingSecret: matrix-synapse-signingkey
+  existingSecretKey: signing.key
 
   resources: {}
   #  limits:
@@ -84,8 +84,47 @@ config:
   useStructuredLogging: true
 
 extraConfig:
+  password_config:
+    enabled: true
+    localdb_enabled: true
+
+    policy:
+       enabled: true
+       minimum_length: 14
+       require_digit: true
+       require_symbol: true
+       require_lowercase: true
+       require_uppercase: true
+  push:
+    enabled: true
+    include_content: false
+    group_unread_count_by_room: true
+    jitter_delay: "10s"
   use_presence: true
   enable_search: true
+  enable_room_list_search: true
+  user_directory:
+    enabled: true
+    search_all_users: false
+    prefer_local_users: true
+    show_locked_users: false
+  server_notices:
+    system_mxid_localpart: notices
+    system_mxid_display_name: "Server Notices"
+    room_name: "Server Notices"
+    room_topic: "Room used by your server admin to notice you of important information"
+    auto_join: true
+  background_updates:
+    background_update_duration_ms: 500
+    sleep_enabled: true
+    sleep_duration_ms: 1000
+    min_batch_size: 1
+    default_batch_size: 50
+  auto_accept_invites:
+    enabled: true
+    only_for_direct_messages: true
+    only_from_local_users: true
+  forget_rooms_on_leave: true
   dynamic_thumbnails: true
   enable_media_repo: true
   enable_registration_captcha: true  
@@ -94,24 +133,12 @@ extraConfig:
     events:
       - event_streamer1
       - event_streamer2
-    typing: 
-      - typing_streamer1
-      - typing_streamer2
-    to_device: 
-      - device_streamer1
-      - device_streamer2
-    account_data: 
-      - account_streamer1
-      - account_streamer2
-    receipts: 
-      - receipts_streamer1
-      - receipts_streamer2
-    presence: 
-      - presence_streamer1
-      - presence_streamer2
-    push_rules: 
-      - push_streamer1
-      - push_streamer2
+    typing: typing_streamer
+    to_device: device_streamer
+    account_data: account_streamer
+    receipts: receipts_streamer
+    presence: presence_streamer
+    push_rules: push_streamer
   federation_sender_instances:
     - federation_sender1
     - federation_sender2
@@ -277,51 +304,159 @@ workers:
     generic: true
     app: generic_worker
     name: generic_background
-    #listeners: [client, federation, resources]
-    #csPaths:
+
+  generic_worker1:
+    enabled: true
+    generic: true
+    app: generic_worker
+    name: generic_worker1
+    listeners: [client, federation]
+    csPaths:
     #  ## Sync requests
-    #  - "/_matrix/client/(r0|v3)/sync$"
-    #  - "/_matrix/client/(api/v1|r0|v3)/events$"
-    #  - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
-    #  - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+      - "/_matrix/client/(r0|v3)/sync$"
+      - "/_matrix/client/(api/v1|r0|v3)/events$"
+      - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+      - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
 
     #  ## Client API requests
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$"
-    #  - "/_matrix/client/v1/rooms/.*/hierarchy$"
-    #  - "/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$"
-    #  - "/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$"
-    #  - "/_matrix/client/(r0|v3|unstable)/account/3pid$"
-    #  - "/_matrix/client/(r0|v3|unstable)/account/whoami$"
-    #  - "/_matrix/client/(r0|v3|unstable)/devices$"
-    #  - "/_matrix/client/versions$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$"
+      - "/_matrix/client/v1/rooms/.*/hierarchy$"
+      - "/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$"
+      - "/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$"
+      - "/_matrix/client/(r0|v3|unstable)/account/3pid$"
+      - "/_matrix/client/(r0|v3|unstable)/account/whoami$"
+      - "/_matrix/client/(r0|v3|unstable)/devices$"
+      - "/_matrix/client/versions$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
 
     #  ## Encryption requests
-    #  - "/_matrix/client/(r0|v3|unstable)/keys/query$"
-    #  - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
-    #  - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
-    #  - "/_matrix/client/(r0|v3|unstable)/room_keys/"
+      - "/_matrix/client/(r0|v3|unstable)/keys/query$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
+      - "/_matrix/client/(r0|v3|unstable)/room_keys/"
 
     #  ## Registration/login requests
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
-    #  - "/_matrix/client/(r0|v3|unstable)/register$"
-    #  - "/_matrix/client/v1/register/m.login.registration_token/validity$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
+      - "/_matrix/client/(r0|v3|unstable)/register$"
+      - "/_matrix/client/v1/register/m.login.registration_token/validity$"
 
     #  ## Event sending requests
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
-    #  - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+  generic_worker2:
+    enabled: true
+    generic: true
+    app: generic_worker
+    name: generic_worker2
+    listeners: [client, federation]
+    csPaths:
+    #  ## Sync requests
+      - "/_matrix/client/(r0|v3)/sync$"
+      - "/_matrix/client/(api/v1|r0|v3)/events$"
+      - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+      - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+
+    #  ## Client API requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$"
+      - "/_matrix/client/v1/rooms/.*/hierarchy$"
+      - "/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$"
+      - "/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$"
+      - "/_matrix/client/(r0|v3|unstable)/account/3pid$"
+      - "/_matrix/client/(r0|v3|unstable)/account/whoami$"
+      - "/_matrix/client/(r0|v3|unstable)/devices$"
+      - "/_matrix/client/versions$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
+
+    #  ## Encryption requests
+      - "/_matrix/client/(r0|v3|unstable)/keys/query$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
+      - "/_matrix/client/(r0|v3|unstable)/room_keys/"
+
+    #  ## Registration/login requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
+      - "/_matrix/client/(r0|v3|unstable)/register$"
+      - "/_matrix/client/v1/register/m.login.registration_token/validity$"
+
+    #  ## Event sending requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+  generic_worker3:
+    enabled: true
+    generic: true
+    app: generic_worker
+    name: generic_worker3
+    listeners: [client, federation]
+    csPaths:
+    #  ## Sync requests
+      - "/_matrix/client/(r0|v3)/sync$"
+      - "/_matrix/client/(api/v1|r0|v3)/events$"
+      - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+      - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+
+    #  ## Client API requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$"
+      - "/_matrix/client/v1/rooms/.*/hierarchy$"
+      - "/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$"
+      - "/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$"
+      - "/_matrix/client/(r0|v3|unstable)/account/3pid$"
+      - "/_matrix/client/(r0|v3|unstable)/account/whoami$"
+      - "/_matrix/client/(r0|v3|unstable)/devices$"
+      - "/_matrix/client/versions$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
+
+    #  ## Encryption requests
+      - "/_matrix/client/(r0|v3|unstable)/keys/query$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
+      - "/_matrix/client/(r0|v3|unstable)/room_keys/"
+
+    #  ## Registration/login requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
+      - "/_matrix/client/(r0|v3|unstable)/register$"
+      - "/_matrix/client/v1/register/m.login.registration_token/validity$"
+
+    #  ## Event sending requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
 
     #  ## User directory search requests
     #  - "/_matrix/client/(r0|v3|unstable)/user_directory/search"
@@ -376,140 +511,68 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/knock/"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+    listeners: [replication]
 
   event_streamer2:
     name: event_streamer2
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/knock/"
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+    listeners: [replication]
 
-  typing_streamer1:
-    name: typing_streamer1
+  typing_streamer:
+    name: typing_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
+    listeners: [client, replication]
     csPaths:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
 
-  typing_streamer2:
-    name: typing_streamer2
+  device_streamer:
+    name: device_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
-
-  device_streamer1:
-    name: device_streamer1
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [federation, client, resources, replication]
+    listeners: [client, replication]
     csPaths:
       - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
 
-  device_streamer2:
-    name: device_streamer2
+  account_streamer:
+    name: account_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
-
-  account_streamer1:
-    name: account_streamer1
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [federation, client, resources, replication]
+    listeners: [replication]
     csPaths:
       - "/_matrix/client/(r0|v3|unstable)/.*/tags"
       - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
 
-  account_streamer2:
-    name: account_streamer2
+  receipts_streamer:
+    name: receipts_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(r0|v3|unstable)/.*/tags"
-      - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
-
-  receipts_streamer1:
-    name: receipts_streamer1
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [federation, client, resources, replication]
+    listeners: [replication]
     csPaths:
       - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
       - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
 
-  receipts_streamer2:
-    name: receipts_streamer2
+  presence_streamer:
+    name: presence_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
-      - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
-
-  presence_streamer1:
-    name: presence_streamer1
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [federation, client, resources, replication]
+    listeners: [replication]
     csPaths:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
 
-  presence_streamer2:
-    name: presence_streamer2
+  push_streamer:
+    name: push_streamer
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
-
-  push_streamer1:
-    name: push_streamer1
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [federation, client, resources, replication]
-    csPaths:
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/"
-
-  push_streamer2:
-    name: push_streamer2
-    enabled: true
-    generic: true
-    app: generic_worker
-    listeners: [federation, client, resources, replication]
+    listeners: [replication]
     csPaths:
       - "/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/"
 
@@ -518,7 +581,7 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources]
+    listeners: [federation, replication]
     csPaths:
       - "/_matrix/federation/v1/event/"
       - "/_matrix/federation/v1/state/"
@@ -547,7 +610,7 @@ workers:
     enabled: true
     generic: true
     app: generic_worker
-    listeners: [federation, client, resources]
+    listeners: [federation]
     csPaths:
       - "/_matrix/federation/v1/event/"
       - "/_matrix/federation/v1/state/"
@@ -576,37 +639,37 @@ workers:
     generic: true
     app: generic_worker
     name: userdir1
-    listers: [client, federation, resources]
+    listers: [client]
     csPaths:
-      - "^/_matrix/client/(r0|v3|unstable)/user_directory/search$"
+      - "/_matrix/client/(r0|v3|unstable)/user_directory/search$"
 
   appservices1:
     app: generic_worker
     enabled: true
     generic: true
     name: appservices1
-    listeners: [client, federation, resources]
+    listeners: []
 
   pusher1:
     enabled: true
     generic: true
     app: generic_worker
     name: pusher1
-    listeners: [client, federation, resources]
+    listeners: []
 
   pusher2:
     enabled: true
     generic: true
     app: generic_worker
     name: pusher2
-    listeners: [client, federation, resources]
+    listerners: []
 
   sync_worker1:
     name: sync_worker1
     app: generic_worker
     enabled: true
     generic: true
-    listeners: [client, federation, resources]
+    listeners: [client]
     csPaths:
       - "/_matrix/client/(r0|v3)/sync$"
       - "/_matrix/client/(api/v1|r0|v3)/events$"
@@ -618,7 +681,7 @@ workers:
     app: generic_worker
     enabled: true
     generic: true
-    listeners: [client, federation, resources]
+    listeners: [client]
     csPaths:
       - "/_matrix/client/(r0|v3)/sync$"
       - "/_matrix/client/(api/v1|r0|v3)/events$"
@@ -764,8 +827,6 @@ externalPostgresql:
   port: 5432
   username: synapse
   database: synapse
-  sslmode: disabled
-  extraArgs: {}
 
 redis:
   enabled: false
@@ -776,9 +837,9 @@ externalRedis:
 
 persistence:
   enabled: true
-  # existingClaim: synapse-data
-  accessMode: ReadWriteOnce
-  size: 50Gi
+  existingClaim: synapse-data
+  #accessMode: ReadWriteMany
+  #size: 50Gi
 
 volumePermissions:
   enabled: false
@@ -812,26 +873,7 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     kubernetes.io/tls-acme: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/server-snippet: |
-      # Extract username from access token passed as URL parameter
-      map $arg_access_token $accesstoken_from_urlparam {
-          # Defaults to just passing back the whole accesstoken
-          default   $arg_access_token;
-          # Try to extract username part from accesstoken URL parameter
-          "~syt_(?<username>.*?)_.*"           $username;
-      }
-
-      # Extract username from access token passed as authorization header
-      map $http_authorization $mxid_localpart {
-          # Defaults to just passing back the whole accesstoken
-          default                              $http_authorization;
-          # Try to extract username part from accesstoken header
-          "~Bearer syt_(?<username>.*?)_.*"    $username;
-          # if no authorization-header exist, try mapper for URL parameter "access_token"
-          ""                                   $accesstoken_from_urlparam;
-      }
     nginx.ingress.kubernetes.io/upstream-hash-by: "$mxid_localpart"
-
   csHosts:
     - matrix.jpeg.gay
 

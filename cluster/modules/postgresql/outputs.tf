@@ -7,5 +7,5 @@ output "notes" {
 }
 
 output "host" {
-  value = data.kubernetes_service.postgresql.status[0].load_balancer[0].ingress[0].ip
+  value = data.kubernetes_service_v1.postgresql.spec[0].cluster_ip
 }
