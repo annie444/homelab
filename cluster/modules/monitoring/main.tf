@@ -72,7 +72,6 @@ resource "helm_release" "prometheus_stack" {
   name       = "prometheus-stack"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
   chart      = "kube-prometheus-stack"
-  version    = "61.6.0"
   repository = "https://prometheus-community.github.io/helm-charts"
 
   cleanup_on_fail = true
@@ -131,7 +130,6 @@ resource "helm_release" "alloy" {
   name       = "alloy"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
   chart      = "alloy"
-  version    = "0.5.1"
   repository = "https://grafana.github.io/helm-charts"
 
   cleanup_on_fail = true
@@ -153,7 +151,6 @@ resource "helm_release" "loki" {
   name       = "loki"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
   chart      = "loki"
-  version    = "6.7.3"
   repository = "https://grafana.github.io/helm-charts"
 
   cleanup_on_fail = true

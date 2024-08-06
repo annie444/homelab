@@ -1,0 +1,11 @@
+---
+compatWithCPUManager: true
+resources:
+  requests:
+    cpu: 100m
+  limits:
+    memory: 512Mi
+migStrategy: mixed
+nvidiaDriverRoot: /
+gfd:
+  enabled: true

@@ -54,6 +54,10 @@ module "matrix" {
   ingress_namespace = module.ingress.external_namespace
 }
 
+module "nvidia" {
+  source = "./modules/nvidia"
+}
+
 module "metallb" {
   source = "./modules/metallb"
 

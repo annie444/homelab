@@ -12,7 +12,6 @@ resource "helm_release" "rook_ceph" {
   namespace  = kubernetes_namespace.rook_ceph.metadata[0].name
   repository = "https://charts.rook.io/release"
   chart      = "rook-ceph"
-  version    = "1.14.9"
 
   cleanup_on_fail = true
   lint            = true
@@ -33,7 +32,6 @@ resource "helm_release" "rook_ceph_cluster" {
   namespace  = helm_release.rook_ceph.namespace
   chart      = "rook-ceph-cluster"
   repository = "https://charts.rook.io/release"
-  version    = "1.14.9"
 
   cleanup_on_fail = true
   lint            = true

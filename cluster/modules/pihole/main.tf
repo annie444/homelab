@@ -11,7 +11,6 @@ resource "helm_release" "pihole" {
   name       = "pihole"
   namespace  = kubernetes_namespace.pihole.metadata[0].name
   chart      = "pihole"
-  version    = "2.26.1"
   repository = "https://mojo2600.github.io/pihole-kubernetes"
 
   cleanup_on_fail = true
@@ -49,7 +48,6 @@ resource "helm_release" "externaldns_pihole" {
   name       = "externaldns-pihole"
   namespace  = kubernetes_namespace.pihole.metadata[0].name
   chart      = "external-dns"
-  version    = "8.3.3"
   repository = "https://charts.bitnami.com/bitnami"
 
   cleanup_on_fail = true

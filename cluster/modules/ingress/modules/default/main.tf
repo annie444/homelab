@@ -17,7 +17,6 @@ resource "helm_release" "ingress_nginx" {
   name       = "ingress-nginx${local.suffix}"
   namespace  = kubernetes_namespace.nginx.metadata[0].name
   chart      = "ingress-nginx"
-  version    = "4.11.1"
   repository = "https://kubernetes.github.io/ingress-nginx"
 
   cleanup_on_fail = true

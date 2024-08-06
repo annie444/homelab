@@ -11,7 +11,6 @@ resource "helm_release" "element_web" {
   name       = "element-web"
   namespace  = kubernetes_namespace.element.metadata[0].name
   chart      = "element-web"
-  version    = "1.3.28"
   repository = "https://ananace.gitlab.io/charts"
 
   cleanup_on_fail = true

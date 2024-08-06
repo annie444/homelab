@@ -28,7 +28,6 @@ resource "helm_release" "redis" {
   name       = "redis"
   namespace  = kubernetes_namespace.redis.metadata[0].name
   chart      = "redis"
-  version    = "19.6.4"
   repository = "https://charts.bitnami.com/bitnami"
 
   cleanup_on_fail = true

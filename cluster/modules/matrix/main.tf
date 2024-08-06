@@ -56,7 +56,6 @@ resource "helm_release" "matrix_media_repo" {
   name       = "matrix-media-repo"
   namespace  = kubernetes_namespace.matrix.metadata[0].name
   chart      = "matrix-media-repo"
-  version    = "3.0.6"
   repository = "https://ananace.gitlab.io/charts"
 
   cleanup_on_fail = true
@@ -113,7 +112,6 @@ resource "helm_release" "matrix_synapse" {
   name       = "matrix-synapse"
   namespace  = kubernetes_namespace.matrix.metadata[0].name
   chart      = "matrix-synapse"
-  version    = "3.9.9"
   repository = "https://ananace.gitlab.io/charts"
 
   cleanup_on_fail = true
@@ -232,7 +230,10 @@ resource "helm_release" "sliding_sync" {
   namespace  = kubernetes_namespace.matrix.metadata[0].name
   chart      = "sliding-sync-proxy"
   repository = "https://ananace.gitlab.io/charts"
-  version    = "0.2.13"
+
+  cleanup_on_fail = true
+  lint            = false
+  max_history     = 10
 
   values = [
     file("${path.module}/values/sliding-sync.values.yaml")
@@ -264,7 +265,10 @@ resource "helm_release" "synatainer" {
   namespace  = kubernetes_namespace.matrix.metadata[0].name
   chart      = "synatainer"
   repository = "https://ananace.gitlab.io/charts"
-  version    = "1.1.4"
+
+  cleanup_on_fail = true
+  lint            = true
+  max_history     = 10
 
   values = [
     file("${path.module}/values/synatainer.values.yaml")

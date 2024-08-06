@@ -51,7 +51,6 @@ resource "helm_release" "postgresql" {
   name       = "postgresql"
   namespace  = kubernetes_namespace.postgresql.metadata[0].name
   chart      = "postgresql"
-  version    = "15.5.20"
   repository = "https://charts.bitnami.com/bitnami"
 
   cleanup_on_fail = true

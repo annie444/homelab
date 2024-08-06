@@ -12,7 +12,6 @@ resource "helm_release" "metallb" {
   chart      = "metallb"
   repository = "https://metallb.github.io/metallb"
   namespace  = kubernetes_namespace.metallb.metadata[0].name
-  version    = "0.14.8"
 
   cleanup_on_fail = true
   lint            = true
