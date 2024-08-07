@@ -1,0 +1,6 @@
+prometheus:
+  enabled: false
+
+  servicemonitor:
+    # Create a ServiceMonitor to add cert-manager to Prometheus.
+    enabled: false

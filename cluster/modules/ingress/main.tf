@@ -46,29 +46,13 @@ resource "helm_release" "cert_manager" {
   lint            = true
   max_history     = 10
 
-  set {
-    name  = "crds.enabled"
-    value = "true"
-    type  = "auto"
-  }
-
-  set {
-    name  = "replicaCount"
-    value = "2"
-    type  = "auto"
-  }
-
-  set {
-    name  = "prometheus.enabled"
-    value = var.monitoring
-    type  = "auto"
-  }
-
-  set {
-    name  = "prometheus.servicemonitor.enabled"
-    value = var.monitoring
-    type  = "auto"
-  }
+  values = concat([
+    file("${path.module}/values/cert-manager.values.yaml")
+  ], (
+      var.monitoring ?
+      [file("${path.module}/values/cert-manager.monitoring.yaml")] :
+      [file("${path.module}/values/cert-maanger.no-monitoring.yaml")]
+    ))
 }
 
 resource "kubernetes_manifest" "cluster_issuer" {

@@ -250,6 +250,11 @@ resource "helm_release" "sliding_sync" {
   }
 
   set {
+    name  = "ingress.annotations.cert-manager\\.io/cluster-issuer"
+    value = var.cluster_issuer
+  }
+
+  set {
     name  = "externalPostgresql.host"
     value = var.postgresql_host
   }

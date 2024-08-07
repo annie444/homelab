@@ -1,0 +1,431 @@
+global:
+  imagePullSecrets: []
+  commonLabels: {}
+  priorityClassName: ""
+
+  rbac:
+    create: true
+    aggregateClusterRoles: true
+
+  podSecurityPolicy:
+    enabled: false
+    useAppArmor: true
+  logLevel: 2
+
+  leaderElection:
+    namespace: "kube-system"
+
+crds:
+  enabled: true
+  keep: true
+
+replicaCount: 1
+strategy: {}
+
+podDisruptionBudget:
+  enabled: false
+
+featureGates: ""
+maxConcurrentChallenges: 60
+
+image:
+  repository: quay.io/jetstack/cert-manager-controller
+  pullPolicy: IfNotPresent
+
+clusterResourceNamespace: ""
+namespace: ""
+
+serviceAccount:
+  create: true
+  # Automount API credentials for a Service Account.
+  automountServiceAccountToken: true
+
+# automountServiceAccountToken: true
+enableCertificateOwnerRef: true
+
+# This property is used to configure options for the controller pod.
+# This allows setting options that would usually be provided using flags.
+# An APIVersion and Kind must be specified in your values.yaml file.
+# Flags will override options that are set here.
+#
+# For example:
+#  config:
+#    apiVersion: controller.config.cert-manager.io/v1alpha1
+#    kind: ControllerConfiguration
+#    logging:
+#      verbosity: 2
+#      format: text
+#    leaderElectionConfig:
+#      namespace: kube-system
+#    kubernetesAPIQPS: 9000
+#    kubernetesAPIBurst: 9000
+#    numberOfConcurrentWorkers: 200
+#    featureGates:
+#      AdditionalCertificateOutputFormats: true
+#      DisallowInsecureCSRUsageDefinition: true
+#      ExperimentalCertificateSigningRequestControllers: true
+#      ExperimentalGatewayAPISupport: true
+#      LiteralCertificateSubject: true
+#      SecretsFilteredCaching: true
+#      ServerSideApply: true
+#      StableCertificateRequestName: true
+#      UseCertificateRequestBasicConstraints: true
+#      ValidateCAA: true
+#    metricsTLSConfig:
+#      dynamic:
+#        secretNamespace: "cert-manager"
+#        secretName: "cert-manager-metrics-ca"
+#        dnsNames:
+#        - cert-manager-metrics
+#        - cert-manager-metrics.cert-manager
+#        - cert-manager-metrics.cert-manager.svc
+config: {}
+dns01RecursiveNameservers: ""
+dns01RecursiveNameserversOnly: false
+disableAutoApproval: false
+approveSignerNames:
+- issuers.cert-manager.io/*
+- clusterissuers.cert-manager.io/*
+
+# For example:
+#  extraArgs:
+#    - --controllers=*,-certificaterequests-approver
+extraArgs: []
+extraEnv: []
+
+resources: {}
+
+securityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+volumes: []
+volumeMounts: []
+
+# Optional additional annotations to add to the controller Deployment.
+# +docs:property
+# deploymentAnnotations: {}
+
+# Optional additional annotations to add to the controller Pods.
+# +docs:property
+# podAnnotations: {}
+
+# Optional additional labels to add to the controller Pods.
+podLabels: {}
+
+# Optional annotations to add to the controller Service.
+# +docs:property
+# serviceAnnotations: {}
+
+# Optional additional labels to add to the controller Service.
+# +docs:property
+# serviceLabels: {}
+
+# Optionally set the IP family policy for the controller Service to configure dual-stack; see [Configure dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/#services).
+# +docs:property
+# serviceIPFamilyPolicy: ""
+
+# Optionally set the IP families for the controller Service that should be supported, in the order in which they should be applied to ClusterIP. Can be IPv4 and/or IPv6.
+# +docs:property
+# serviceIPFamilies: []
+
+# podDnsPolicy: "None"
+
+# podDnsConfig:
+#   nameservers:
+#     - "1.1.1.1"
+#     - "8.8.8.8"
+
+hostAliases: []
+# - ip: 127.0.0.1
+#   hostnames:
+#   - foo.local
+#   - bar.local
+# - ip: 10.1.2.3
+#   hostnames:
+#   - foo.remote
+#   - bar.remote
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+ingressShim: {}
+
+  # Optional default issuer to use for ingress resources.
+  # +docs:property=ingressShim.defaultIssuerName
+  # defaultIssuerName: ""
+
+  # Optional default issuer kind to use for ingress resources.
+  # +docs:property=ingressShim.defaultIssuerKind
+  # defaultIssuerKind: ""
+
+  # Optional default issuer group to use for ingress resources.
+  # +docs:property=ingressShim.defaultIssuerGroup
+  # defaultIssuerGroup: ""
+
+# Use these variables to configure the HTTP_PROXY environment variables.
+
+# Configures the HTTP_PROXY environment variable where a HTTP proxy is required.
+# +docs:property
+# http_proxy: "http://proxy:8080"
+
+# Configures the HTTPS_PROXY environment variable where a HTTP proxy is required.
+# +docs:property
+# https_proxy: "https://proxy:8080"
+
+no_proxy: 127.0.0.1,localhost
+
+affinity: {}
+tolerations: []
+topologySpreadConstraints: []
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 15
+  successThreshold: 1
+  failureThreshold: 8
+
+enableServiceLinks: false
+
+webhook:
+  replicaCount: 1
+  timeoutSeconds: 30
+  config: {}
+  strategy: {}
+
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+
+  podDisruptionBudget:
+    enabled: false
+
+  # Optional additional annotations to add to the webhook Deployment.
+  # +docs:property
+  # deploymentAnnotations: {}
+
+  # Optional additional annotations to add to the webhook Pods.
+  # +docs:property
+  # podAnnotations: {}
+
+  # Optional additional annotations to add to the webhook Service.
+  # +docs:property
+  # serviceAnnotations: {}
+
+  # Optional additional annotations to add to the webhook MutatingWebhookConfiguration.
+  # +docs:property
+  # mutatingWebhookConfigurationAnnotations: {}
+
+  # Optional additional annotations to add to the webhook ValidatingWebhookConfiguration.
+  # +docs:property
+  # validatingWebhookConfigurationAnnotations: {}
+
+  validatingWebhookConfiguration:
+    namespaceSelector:
+      matchExpressions:
+        - key: "cert-manager.io/disable-validation"
+          operator: "NotIn"
+          values:
+            - "true"
+
+  mutatingWebhookConfiguration:
+    namespaceSelector: {}
+
+  extraArgs: []
+  # Path to a file containing a WebhookConfiguration object used to configure the webhook.
+  # - --config=<path-to-config-file>
+
+  featureGates: ""
+  resources: {}
+
+  livenessProbe:
+    failureThreshold: 3
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+
+  readinessProbe:
+    failureThreshold: 3
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+
+  nodeSelector:
+    kubernetes.io/os: linux
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  podLabels: {}
+  serviceLabels: {}
+  serviceIPFamilyPolicy: ""
+  serviceIPFamilies: []
+
+  image:
+    repository: quay.io/jetstack/cert-manager-webhook
+    pullPolicy: IfNotPresent
+
+  serviceAccount:
+    # Specifies whether a service account should be created.
+    create: true
+    automountServiceAccountToken: true
+
+  securePort: 10250
+  hostNetwork: false
+  serviceType: ClusterIP
+  url: {}
+
+  networkPolicy:
+    enabled: true
+
+    ingress:
+    - from:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+
+    egress:
+    - ports:
+      - port: 80
+        protocol: TCP
+      - port: 443
+        protocol: TCP
+      - port: 53
+        protocol: TCP
+      - port: 53
+        protocol: UDP
+      # On OpenShift and OKD, the Kubernetes API server listens on.
+      # port 6443.
+      - port: 6443
+        protocol: TCP
+      to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+
+  volumes: []
+  volumeMounts: []
+  enableServiceLinks: false
+
+
+cainjector:
+  # Create the CA Injector deployment
+  enabled: true
+  replicaCount: 2
+  config: {}
+  strategy: {}
+
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+
+  podDisruptionBudget:
+    enabled: false
+
+  extraArgs:
+    - --enable-profiling=true
+  featureGates: ""
+
+  resources: {}
+  nodeSelector:
+    kubernetes.io/os: linux
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  podLabels: {}
+  image:
+    repository: quay.io/jetstack/cert-manager-cainjector
+    pullPolicy: IfNotPresent
+
+  serviceAccount:
+    # Specifies whether a service account should be created.
+    create: true
+    automountServiceAccountToken: true
+
+  volumes: []
+  volumeMounts: []
+  enableServiceLinks: false
+
+acmesolver:
+  image:
+    repository: quay.io/jetstack/cert-manager-acmesolver
+    pullPolicy: IfNotPresent
+
+startupapicheck:
+  enabled: true
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+
+  timeout: 1m
+  backoffLimit: 4
+  jobAnnotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "1"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  extraArgs:
+  - -v
+
+  resources: {}
+  nodeSelector:
+    kubernetes.io/os: linux
+  affinity: {}
+  tolerations: []
+  podLabels: {}
+
+  image:
+    repository: quay.io/jetstack/cert-manager-startupapicheck
+    pullPolicy: IfNotPresent
+
+  rbac:
+    annotations:
+      helm.sh/hook: post-install
+      helm.sh/hook-weight: "-5"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+
+  serviceAccount:
+    create: true
+    annotations:
+      helm.sh/hook: post-install
+      helm.sh/hook-weight: "-5"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    automountServiceAccountToken: true
+  volumes: []
+
+  volumeMounts: []
+  enableServiceLinks: false
+extraObjects: []
+
