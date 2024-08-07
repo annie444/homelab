@@ -5,7 +5,24 @@ resources:
     cpu: 100m
   limits:
     memory: 512Mi
-migStrategy: mixed
-nvidiaDriverRoot: /
+nvidiaDriverRoot: /run/current-system/sw/
 gfd:
   enabled: true
+nodeSelector:
+  kubernetes.io/hostname: homelab01
+
+
+config:
+   map:
+     default: |-
+       version: v1
+       flags:
+         migStrategy: none
+     mig-single: |-
+       version: v1
+       flags:
+         migStrategy: single
+     mig-mixed: |-
+       version: v1
+       flags:
+         migStrategy: mixed

@@ -291,6 +291,9 @@ resource "helm_release" "synatainer" {
 }
 
 resource "kubernetes_manifest" "matrix_podmonitor" {
+  field_manager {
+    force_conflicts = true
+  }
   manifest = {
     apiVersion = "monitoring.coreos.com/v1"
     kind       = "PodMonitor"
@@ -307,10 +310,29 @@ resource "kubernetes_manifest" "matrix_podmonitor" {
           kubernetes_namespace.matrix.metadata[0].name
         ]
       }
+
       podMetricsEndpoints = [
         {
-          path = "/_synapse/metrics"
-          port = "metrics"
+          path     = "/_synapse/metrics"
+          port     = "metrics"
+          interval = "10s"
+          relabelings = [
+            {
+              sourceLabels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
+              targetLabel  = "instance"
+              action       = "Replace"
+            },
+            {
+              sourceLabels = ["__meta_kubernetes_pod_label_app_kubernetes_io_component"]
+              targetLabel  = "component"
+              action       = "Replace"
+            },
+            {
+              sourceLabels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+              targetLabel  = "name"
+              action       = "Replace"
+            },
+          ]
         }
       ]
 

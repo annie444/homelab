@@ -13,7 +13,8 @@ data "sops_file" "grafana_credentials" {
 
 resource "kubernetes_secret" "grafana_admin_credentials" {
   metadata {
-    name = "grafana-admin-credentials"
+    name      = "grafana-admin-credentials"
+    namespace = kubernetes_namespace.monitoring.metadata[0].name
   }
 
   data = {
