@@ -77,26 +77,6 @@ resource "helm_release" "redis" {
     name  = "replica.persistence.storageClass"
     value = var.storage_class
   }
-
-  set {
-    name  = "master.service.annotations.metallb\\.universe\\.tf/address-pool"
-    value = var.ip_pool
-  }
-
-  set {
-    name  = "replica.service.annotations.metallb\\.universe\\.tf/address-pool"
-    value = var.ip_pool
-  }
-
-  set {
-    name  = "master.service.annotations.metallb\\.universe\\.tf/allow-shared-ip"
-    value = "redis-svc"
-  }
-
-  set {
-    name  = "replica.service.annotations.metallb\\.universe\\.tf/allow-shared-ip"
-    value = "redis-svc"
-  }
 }
 
 data "kubernetes_service_v1" "redis" {

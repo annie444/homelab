@@ -1,7 +1,6 @@
 locals {
-  prefix  = (var.prefix != null ? "${var.prefix}-" : "")
-  suffix  = (var.suffix != null ? "-${var.suffix}" : "")
-  ip_pool = (var.ip_pool != null ? [var.ip_pool] : [])
+  prefix = (var.prefix != null ? "${var.prefix}-" : "")
+  suffix = (var.suffix != null ? "-${var.suffix}" : "")
 }
 
 resource "kubernetes_namespace" "nginx" {
@@ -32,15 +31,6 @@ resource "helm_release" "ingress_nginx" {
     ),
     var.extra_values
   )
-
-  dynamic "set" {
-    for_each = local.ip_pool
-    iterator = ip_pool
-    content {
-      name  = "controller.service.annotations.metallb\\.universe\\.tf/address-pool"
-      value = ip_pool.value
-    }
-  }
 
   set {
     name  = "controller.ingressClassResource.name"

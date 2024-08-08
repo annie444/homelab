@@ -1,5 +1,6 @@
 module "monitoring" {
-  source = "./modules/monitoring"
+  source     = "./modules/monitoring"
+  depends_on = [module.cilium]
 }
 
 module "rook_ceph" {
@@ -16,21 +17,18 @@ module "pihole" {
 
   monitoring    = module.monitoring.enabled
   ingress_class = module.ingress.internal_ingress
-  ip_pool       = module.metallb.ip_pool
 }
 
 module "ingress" {
   source = "./modules/ingress"
 
   monitoring = module.monitoring.enabled
-  ip_pool    = module.metallb.ip_pool
 }
 
 module "redis" {
   source = "./modules/redis"
 
   monitoring           = module.monitoring.enabled
-  ip_pool              = module.metallb.ip_pool
   storage_class        = module.rook_ceph.block_storage_class
   prometheus_namespace = module.monitoring.namespace
 }
@@ -58,12 +56,8 @@ module "nvidia" {
   source = "./modules/nvidia"
 }
 
-module "metallb" {
-  source = "./modules/metallb"
-
-  prometheus_namespace       = module.monitoring.namespace
-  prometheus_service_account = module.monitoring.prometheus_service_account
-  monitoring                 = module.monitoring.enabled
+module "cilium" {
+  source = "./modules/cilium"
 }
 
 module "element" {

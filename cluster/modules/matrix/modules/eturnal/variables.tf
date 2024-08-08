@@ -15,6 +15,6 @@ variable "cluster_issuer" {
 }
 
 variable "eturnal_secret" {
-  type = string
+  type      = string
   sensitive = true
 }

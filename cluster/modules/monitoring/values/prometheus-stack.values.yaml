@@ -49,8 +49,8 @@ alertmanager:
     hosts:
       - alertmanager.home
   service:
-    annotations:
-      metallb.universe.tf/allow-shared-ip: alertmanager-svc
+    labels:
+      ip-addr: "true"
     type: LoadBalancer
 
 grafana:
@@ -185,12 +185,12 @@ prometheusOperator:
   admissionWebhooks:
     deployment:
       service:
-        annotations:
-          metallb.universe.tf/allow-shared-ip: prometheus-operator-admission-svc
+        labels:
+          ip-addr: "true"
         type: LoadBalancer
   service:
-    annotations:
-      metallb.universe.tf/allow-shared-ip: prometheus-operator-svc
+    labels:
+      ip-addr: "true"
     type: LoadBalancer
 
 
@@ -198,8 +198,8 @@ prometheus:
   enabled: true
   service:
     type: LoadBalancer
-    annotations:
-      metallb.universe.tf/allow-shared-ip: prometheus-svc
+    labels:
+      ip-addr: "true"
   ingress:
     enabled: true
     hosts:

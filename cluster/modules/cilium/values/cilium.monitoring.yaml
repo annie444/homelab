@@ -1,0 +1,69 @@
+prometheus: &prometheus
+  enabled: true
+  serviceMonitor:
+    enabled: true
+
+dashboards: &dashboards
+  enabled: true
+  label: grafana_dashboard
+  namespace: monitoring
+  labelValue: "1"
+  annotations:
+    grafana_folder: "Cilium"
+
+operator:
+  prometheus:
+    <<: *prometheus
+
+  dashboards:
+    <<: *dashboards
+
+hubble:
+  enabled: true
+  dashboards:
+    <<: *dashboards
+
+  tls:
+    auto:
+      enabled: true
+      method: helm
+      certValidityDuration: 1095
+  
+  ui:
+    enabled: true
+    prometheus:
+      <<: *prometheus
+
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        ingress.annotations.cert-manager.io/cluster-issuer: letsencrypt-prod
+      hosts:
+        -  &host "hubble.jpeg.gay"
+      tls:
+        - hosts:
+            - *host
+
+  metrics:
+    enabled:
+      - dns:query
+      - drop
+      - tcp
+      - flow
+      - icmp
+      - http
+    serviceMonitor:
+      enabled: true
+    dashboards:
+      <<: *dashboards
+
+  relay:
+    enabled: true
+    prometheus:
+      <<: *prometheus
+
+  operator:
+    enabled: true
+    prometheus:
+      <<: *prometheus

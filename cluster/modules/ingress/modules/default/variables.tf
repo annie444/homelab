@@ -23,8 +23,3 @@ variable "ingress_class" {
   type     = string
   nullable = false
 }
-
-variable "ip_pool" {
-  type     = string
-  nullable = true
-}

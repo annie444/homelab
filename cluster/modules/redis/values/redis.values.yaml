@@ -176,6 +176,8 @@ master:
 
   service:
     type: LoadBalancer
+    labels:
+      ip-addr: "true"
     portNames:
       redis: "tcp-redis"
     ports:
@@ -331,6 +333,8 @@ replica:
   
   service:
     type: LoadBalancer
+    labels:
+      ip-addr: "true"
     ports:
       redis: 6378
     nodePorts:

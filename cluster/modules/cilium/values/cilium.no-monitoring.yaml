@@ -1,0 +1,45 @@
+prometheus: &prometheus
+  enabled: false
+  serviceMonitor:
+    enabled: false
+
+dashboards: &dashboards
+  enabled: false
+
+operator:
+  prometheus:
+    <<: *prometheus
+
+  dashboards:
+    <<: *dashboards
+
+hubble:
+  enabled: true
+  dashboards:
+    <<: *dashboards
+
+  ui:
+    enabled: false
+
+  metrics:
+    enabled:
+      - dns:query
+      - drop
+      - tcp
+      - flow
+      - icmp
+      - http
+    serviceMonitor:
+      enabled: false
+    dashboards:
+      <<: *dashboards
+
+  relay:
+    enabled: true
+    prometheus:
+      <<: *prometheus
+
+  operator:
+    enabled: true
+    prometheus:
+      <<: *prometheus

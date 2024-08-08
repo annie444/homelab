@@ -9,4 +9,7 @@ controller:
   # -- For backwards compatibility with ingress.class annotation, use ingressClass.
   # Algorithm is as follows, first ingressClassName is considered, if not present, controller looks for ingress.class annotation
   allowSnippetAnnotations: true
+  service:
+    labels:
+      ip-addr: "true"
 allowSnippetAnnotations: true

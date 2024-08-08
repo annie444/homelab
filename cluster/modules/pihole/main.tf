@@ -25,16 +25,6 @@ resource "helm_release" "pihole" {
       [file("${path.module}/values/pihole.no-monitoring.yaml")]
     )
   )
-
-  set {
-    name  = "serviceWeb.annotations.metallb\\.universe\\.tf/address-pool"
-    value = var.ip_pool
-  }
-
-  set {
-    name  = "serviceDns.annotations.metallb\\.universe\\.tf/address-pool"
-    value = var.ip_pool
-  }
 }
 
 data "kubernetes_service" "pihole" {

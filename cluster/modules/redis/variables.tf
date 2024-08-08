@@ -12,8 +12,3 @@ variable "storage_class" {
   type        = string
   description = "The storage class to use for the persistent volume claim"
 }
-
-variable "ip_pool" {
-  type        = string
-  description = "The IP pool to use"
-}

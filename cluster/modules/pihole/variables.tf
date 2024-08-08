@@ -1,8 +1,3 @@
-variable "ip_pool" {
-  type        = string
-  description = "The IP pool to use for the cluster"
-}
-
 variable "ingress_class" {
   type        = string
   description = "The ingress class to bind to"

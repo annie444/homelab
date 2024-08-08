@@ -1,5 +1,0 @@
-prometheus:
-  prometheusRule:
-    enabled: true
-  podMonitor:
-    enabled: true
