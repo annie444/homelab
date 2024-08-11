@@ -14,3 +14,4 @@ cluster/override.tf
 cluster/override.tf.json
 cluster/*_override.tf
 cluster/*_override.tf.json
+*plan*

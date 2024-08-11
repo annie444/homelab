@@ -29,11 +29,10 @@ resource "kubernetes_manifest" "ip_pool" {
     apiVersion = "cilium.io/v2alpha1"
     kind       = "CiliumLoadBalancerIPPool"
     metadata = {
-      name      = "pool"
-      namespace = helm_release.cilium.namespace
+      name = "pool"
     }
     spec = {
-      cidrs = [
+      blocks = [
         { cidr = "192.168.1.192/26" }
       ]
     }
@@ -46,8 +45,7 @@ resource "kubernetes_manifest" "ip_advertisement" {
     apiVersion = "cilium.io/v2alpha1"
     kind       = "CiliumL2AnnouncementPolicy"
     metadata = {
-      name      = "l2policy"
-      namespace = helm_release.cilium.namespace
+      name = "l2policy"
     }
     "spec" = {
       serviceSelector = {
@@ -60,9 +58,6 @@ resource "kubernetes_manifest" "ip_advertisement" {
       ]
       externalIPs     = "true"
       loadBalancerIPs = "true"
-      "ipAddressPools" = [
-        kubernetes_manifest.ip_pool.object.metadata.name
-      ]
     }
   }
 }
